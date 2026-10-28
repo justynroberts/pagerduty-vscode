@@ -1,0 +1,627 @@
+/* MIT License - Copyright (c) fintonlabs.com */
+
+/* Surfaces, text and borders come from the VS Code theme so the pane blends in.
+   The PagerDuty palette carries the brand rule, primary actions, focus and links. */
+
+:root {
+  --pd-green: #048a24;
+  --pd-dark-green: #005a2f;
+  --pd-ultrateal: #117170;
+  --pd-electric: #adf07e;
+  --pd-gray: #efefef;
+
+  --bg: var(--vscode-editor-background);
+  --fg: var(--vscode-editor-foreground);
+  --muted: var(--vscode-descriptionForeground);
+  --line: var(--vscode-widget-border, var(--vscode-panel-border, rgba(128, 128, 128, 0.35)));
+  --band: var(--vscode-sideBar-background, var(--bg));
+  --btn-fg: var(--fg);
+  --btn-bg: transparent;
+  --err: var(--vscode-errorForeground);
+  --warn: var(--vscode-editorWarning-foreground);
+  --ok: var(--vscode-testing-iconPassed);
+  --font: var(--vscode-font-family, system-ui, sans-serif);
+  --mono: var(--vscode-editor-font-family, ui-monospace, monospace);
+  --size: var(--vscode-font-size, 13px);
+
+  --accent-text: var(--pd-electric);
+  --link: var(--pd-electric);
+  --focus: var(--pd-electric);
+}
+
+body.vscode-light,
+body.vscode-high-contrast-light {
+  --accent-text: var(--pd-dark-green);
+  --link: var(--pd-ultrateal);
+  --focus: var(--pd-dark-green);
+  --band: var(--pd-gray);
+}
+
+body.vscode-high-contrast:not(.vscode-high-contrast-light) {
+  --line: var(--vscode-contrastBorder, #fff);
+  --focus: var(--vscode-focusBorder, #f38518);
+}
+
+/* Manual override (pagerduty.theme): the pane stops following the editor and uses its own surfaces. */
+html[data-theme='light'] body {
+  --bg: #ffffff;
+  --fg: #1a1c1b;
+  --muted: #5b605d;
+  --line: #d6d9d7;
+  --band: var(--pd-gray);
+  --err: #b3261e;
+  --warn: #8a5300;
+  --ok: var(--pd-green);
+  --accent-text: var(--pd-dark-green);
+  --link: var(--pd-ultrateal);
+  --focus: var(--pd-dark-green);
+}
+
+html[data-theme='dark'] body {
+  --bg: #111513;
+  --fg: #e6eae8;
+  --muted: #9aa39e;
+  --line: #2b322e;
+  --band: #171c19;
+  --err: #ff7b72;
+  --warn: #e3b341;
+  --ok: var(--pd-electric);
+  --accent-text: var(--pd-electric);
+  --link: var(--pd-electric);
+  --focus: var(--pd-electric);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: var(--size);
+  line-height: 1.45;
+}
+
+.mono,
+.num,
+time {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 24px;
+  color: var(--muted);
+}
+
+/* Header band: the PagerDuty green rule is the brand moment. */
+.head {
+  background: var(--band);
+  border-top: 3px solid var(--pd-green);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 24px 16px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  min-height: 24px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 0 4px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.status-triggered {
+  color: var(--err);
+}
+.status-acknowledged {
+  color: var(--warn);
+}
+.status-resolved {
+  color: var(--ok);
+}
+
+.num {
+  font-weight: 600;
+}
+
+.urgency-high {
+  color: var(--err);
+  font-weight: 600;
+}
+
+.priority {
+  font-family: var(--mono);
+  font-weight: 600;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+
+.service {
+  font-weight: 600;
+}
+
+h1 {
+  margin: 8px 0 12px;
+  font-size: 1.45em;
+  font-weight: 600;
+  line-height: 1.25;
+  max-width: 72ch;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+button {
+  font: inherit;
+  color: var(--btn-fg);
+  background: var(--btn-bg);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 4px 12px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 140ms ease-out, border-color 140ms ease-out, color 140ms ease-out;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--fg);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* PD Green on white text is ~4.5:1, so primary labels stay bold. */
+button.primary {
+  background: var(--pd-green);
+  border-color: var(--pd-green);
+  color: #fff;
+  font-weight: 700;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--pd-dark-green);
+  border-color: var(--pd-dark-green);
+}
+
+button.icon-btn {
+  padding: 4px;
+  min-width: 28px;
+  justify-content: center;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+button.icon-btn:hover {
+  color: var(--fg);
+}
+
+button.link {
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+button.link.inline {
+  display: inline;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+a {
+  color: var(--link);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.icon {
+  flex: none;
+}
+
+.error {
+  margin: 12px 0 0;
+  color: var(--err);
+}
+
+/* Body: timeline left and wide, details rail right. */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+  gap: 0 32px;
+  padding: 16px 24px 48px;
+}
+
+@media (max-width: 720px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 0.85em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.count {
+  font-family: var(--mono);
+  font-weight: 400;
+}
+
+section + section {
+  margin-top: 24px;
+}
+
+.rail {
+  border-left: 1px solid var(--line);
+  padding-left: 24px;
+}
+
+@media (max-width: 720px) {
+  .rail {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    margin-top: 24px;
+  }
+}
+
+.timeline ol,
+.stack {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: max-content 16px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.entry time {
+  padding-top: 1px;
+}
+
+.marker {
+  padding-top: 2px;
+  color: var(--muted);
+}
+
+.kind-trigger .marker {
+  color: var(--err);
+}
+.kind-acknowledge .marker {
+  color: var(--warn);
+}
+.kind-resolve .marker {
+  color: var(--ok);
+}
+.kind-annotate .marker,
+.kind-assign .marker,
+.kind-escalate .marker {
+  color: var(--accent-text);
+}
+
+.summary {
+  overflow-wrap: anywhere;
+}
+
+.pairs {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.pairs dt {
+  color: var(--muted);
+}
+
+.pairs dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.stack li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.stack li:first-child {
+  padding-top: 0;
+}
+
+.byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.prose {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sev {
+  font-weight: 700;
+  text-transform: capitalize;
+}
+.sev-critical,
+.sev-error {
+  color: var(--err);
+}
+.sev-warning {
+  color: var(--warn);
+}
+
+details {
+  margin-top: 4px;
+}
+
+summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+pre {
+  margin: 4px 0 0;
+  padding: 8px;
+  max-height: 320px;
+  overflow: auto;
+  background: var(--band);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 0.92em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Two-column body: a main column (Paige, timeline, changes) and the rail. */
+.main > section + section {
+  margin-top: 32px;
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+
+.section-head h2 {
+  margin: 0;
+}
+
+h2 .icon {
+  vertical-align: -3px;
+  margin-right: 2px;
+}
+
+h3 {
+  margin: 16px 0 4px;
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--line);
+  margin: 2px 4px;
+}
+
+.mine {
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.small {
+  font-size: 0.92em;
+}
+
+.tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+/* Paige: the one AI surface, marked by an Ultrateal/Electric left rule rather than colour fills. */
+.paige {
+  border-left: 2px solid var(--link);
+  padding: 8px 0 8px 16px;
+}
+
+.paige p {
+  margin: 0;
+}
+
+button.ai {
+  border-color: var(--link);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+button.ai:hover:not(:disabled) {
+  border-color: var(--accent-text);
+}
+
+.findings {
+  margin-top: 12px !important;
+}
+
+.entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.kind-change .marker,
+.kind-commit .marker {
+  color: var(--accent-text);
+}
+
+.files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.files li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.files .link {
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--vscode-input-foreground, var(--fg));
+  background: var(--vscode-input-background, var(--bg));
+  border: 1px solid var(--vscode-input-border, var(--line));
+  border-radius: 2px;
+  padding: 6px 8px;
+  resize: vertical;
+}
+
+html[data-theme='light'] textarea,
+html[data-theme='dark'] textarea {
+  color: var(--fg);
+  background: var(--bg);
+  border-color: var(--line);
+}
+
+/* FintonLabs info dialog */
+dialog.about {
+  padding: 0;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--pd-green);
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--fg);
+  min-width: 260px;
+}
+
+dialog.about::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.about-body {
+  padding: 12px 16px 16px;
+}
+
+.about-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.about-head h2 {
+  margin: 0;
+  font-size: 1em;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--fg);
+}
+
+.about-body p {
+  margin: 8px 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

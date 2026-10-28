@@ -1,0 +1,635 @@
+{
+  "name": "pagerduty-incidents",
+  "displayName": "PagerDuty Incidents",
+  "description": "Work PagerDuty incidents end to end in VS Code: triage, respond, Paige, AIOps insights and the code behind the incident.",
+  "version": "0.1.0",
+  "publisher": "fintonlabs",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "pagerduty",
+    "incident",
+    "on-call",
+    "sre",
+    "paige",
+    "aiops",
+    "mcp"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished",
+    "onUri"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In an untrusted workspace the extension is read-only and does not read .pagerduty.json."
+    }
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pagerduty",
+          "title": "PagerDuty",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "pagerduty": [
+        {
+          "id": "pagerduty.mine",
+          "name": "My Incidents"
+        },
+        {
+          "id": "pagerduty.teams",
+          "name": "My Teams"
+        },
+        {
+          "id": "pagerduty.all",
+          "name": "All Incidents",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pagerduty.oncall",
+          "name": "On Call Now",
+          "visibility": "collapsed"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "pagerduty.mine",
+        "contents": "Sign in to see the incidents assigned to you.\n[Sign In](command:pagerduty.signIn)\nUse a PagerDuty user API token, or sign in through the browser where your account allows OAuth.",
+        "when": "!pagerduty.signedIn"
+      }
+    ],
+    "commands": [
+      {
+        "command": "pagerduty.signIn",
+        "title": "Sign In",
+        "category": "PagerDuty",
+        "icon": "$(sign-in)"
+      },
+      {
+        "command": "pagerduty.signOut",
+        "title": "Sign Out",
+        "category": "PagerDuty"
+      },
+      {
+        "command": "pagerduty.refresh",
+        "title": "Refresh",
+        "category": "PagerDuty",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "pagerduty.openIncident",
+        "title": "Open Incident",
+        "category": "PagerDuty",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "pagerduty.acknowledge",
+        "title": "Acknowledge Incident",
+        "category": "PagerDuty",
+        "icon": "$(check)"
+      },
+      {
+        "command": "pagerduty.resolve",
+        "title": "Resolve Incident",
+        "category": "PagerDuty",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "pagerduty.openInBrowser",
+        "title": "Open in PagerDuty",
+        "category": "PagerDuty",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "pagerduty.filter",
+        "title": "Filter Incidents",
+        "category": "PagerDuty",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "pagerduty.clearFilter",
+        "title": "Clear Filter",
+        "category": "PagerDuty",
+        "icon": "$(filter-filled)"
+      },
+      {
+        "command": "pagerduty.search",
+        "title": "Search Incidents",
+        "category": "PagerDuty",
+        "icon": "$(search)"
+      },
+      {
+        "command": "pagerduty.showAuditLog",
+        "title": "Show Audit Log",
+        "category": "PagerDuty"
+      },
+      {
+        "command": "pagerduty.about",
+        "title": "About",
+        "category": "PagerDuty"
+      },
+      {
+        "command": "pagerduty.incidentActions",
+        "title": "Incident Actions\u2026",
+        "category": "PagerDuty",
+        "icon": "$(list-selection)"
+      },
+      {
+        "command": "pagerduty.escalate",
+        "title": "Escalate Incident",
+        "category": "PagerDuty",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "pagerduty.reassign",
+        "title": "Reassign Incident",
+        "category": "PagerDuty",
+        "icon": "$(person)"
+      },
+      {
+        "command": "pagerduty.addResponders",
+        "title": "Add Responders",
+        "category": "PagerDuty",
+        "icon": "$(person-add)"
+      },
+      {
+        "command": "pagerduty.snooze",
+        "title": "Snooze Incident",
+        "category": "PagerDuty",
+        "icon": "$(clock)"
+      },
+      {
+        "command": "pagerduty.changeUrgency",
+        "title": "Change Urgency",
+        "category": "PagerDuty",
+        "icon": "$(flame)"
+      },
+      {
+        "command": "pagerduty.changePriority",
+        "title": "Change Priority",
+        "category": "PagerDuty",
+        "icon": "$(list-ordered)"
+      },
+      {
+        "command": "pagerduty.addNote",
+        "title": "Add Note",
+        "category": "PagerDuty",
+        "icon": "$(note)"
+      },
+      {
+        "command": "pagerduty.merge",
+        "title": "Merge Incidents",
+        "category": "PagerDuty",
+        "icon": "$(git-merge)"
+      },
+      {
+        "command": "pagerduty.statusUpdate",
+        "title": "Post Status Update",
+        "category": "PagerDuty",
+        "icon": "$(megaphone)"
+      },
+      {
+        "command": "pagerduty.runWorkflow",
+        "title": "Run Incident Workflow",
+        "category": "PagerDuty",
+        "icon": "$(play)"
+      },
+      {
+        "command": "pagerduty.askPaige",
+        "title": "Ask Paige to Investigate",
+        "category": "PagerDuty",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "pagerduty.askAgent",
+        "title": "Ask Editor Agent About Incident",
+        "category": "PagerDuty",
+        "icon": "$(copilot)"
+      },
+      {
+        "command": "pagerduty.addFollowUp",
+        "title": "Add Follow-up",
+        "category": "PagerDuty",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "pagerduty.postmortemDraft",
+        "title": "Postmortem Draft",
+        "category": "PagerDuty",
+        "icon": "$(book)"
+      },
+      {
+        "command": "pagerduty.connectRelay",
+        "title": "Connect Push Relay",
+        "category": "PagerDuty"
+      },
+      {
+        "command": "pagerduty.disconnectRelay",
+        "title": "Disconnect Push Relay",
+        "category": "PagerDuty"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "pagerduty.refresh",
+          "when": "view =~ /^pagerduty\\./ && pagerduty.signedIn",
+          "group": "navigation@3"
+        },
+        {
+          "command": "pagerduty.search",
+          "when": "view =~ /^pagerduty\\.(mine|teams|all)$/ && pagerduty.signedIn",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pagerduty.filter",
+          "when": "view =~ /^pagerduty\\.(mine|teams|all)$/ && pagerduty.signedIn && !pagerduty.filtered",
+          "group": "navigation@2"
+        },
+        {
+          "command": "pagerduty.clearFilter",
+          "when": "view =~ /^pagerduty\\.(mine|teams|all)$/ && pagerduty.filtered",
+          "group": "navigation@2"
+        },
+        {
+          "command": "pagerduty.showAuditLog",
+          "when": "view =~ /^pagerduty\\./",
+          "group": "z@1"
+        },
+        {
+          "command": "pagerduty.signOut",
+          "when": "view =~ /^pagerduty\\./ && pagerduty.signedIn",
+          "group": "z@2"
+        },
+        {
+          "command": "pagerduty.about",
+          "when": "view =~ /^pagerduty\\./",
+          "group": "z@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "pagerduty.acknowledge",
+          "when": "viewItem == incident.triggered && pagerduty.canWrite",
+          "group": "inline@1"
+        },
+        {
+          "command": "pagerduty.resolve",
+          "when": "viewItem =~ /^incident\\.(triggered|acknowledged)$/ && pagerduty.canWrite",
+          "group": "inline@2"
+        },
+        {
+          "command": "pagerduty.openIncident",
+          "when": "viewItem =~ /^incident\\./",
+          "group": "1_open@1"
+        },
+        {
+          "command": "pagerduty.openInBrowser",
+          "when": "viewItem =~ /^incident\\./",
+          "group": "1_open@2"
+        },
+        {
+          "command": "pagerduty.acknowledge",
+          "when": "viewItem == incident.triggered && pagerduty.canWrite",
+          "group": "2_act@1"
+        },
+        {
+          "command": "pagerduty.resolve",
+          "when": "viewItem =~ /^incident\\.(triggered|acknowledged)$/ && pagerduty.canWrite",
+          "group": "2_act@2"
+        },
+        {
+          "command": "pagerduty.incidentActions",
+          "when": "viewItem =~ /^incident\\./",
+          "group": "inline@0"
+        },
+        {
+          "command": "pagerduty.reassign",
+          "when": "viewItem =~ /^incident\\.(triggered|acknowledged)$/ && pagerduty.canWrite",
+          "group": "3_respond@1"
+        },
+        {
+          "command": "pagerduty.escalate",
+          "when": "viewItem =~ /^incident\\.(triggered|acknowledged)$/ && pagerduty.canWrite",
+          "group": "3_respond@2"
+        },
+        {
+          "command": "pagerduty.addResponders",
+          "when": "viewItem =~ /^incident\\.(triggered|acknowledged)$/ && pagerduty.canWrite",
+          "group": "3_respond@3"
+        },
+        {
+          "command": "pagerduty.snooze",
+          "when": "viewItem == incident.acknowledged && pagerduty.canWrite",
+          "group": "3_respond@4"
+        },
+        {
+          "command": "pagerduty.addNote",
+          "when": "viewItem =~ /^incident\\./ && pagerduty.canWrite",
+          "group": "3_respond@5"
+        },
+        {
+          "command": "pagerduty.statusUpdate",
+          "when": "viewItem =~ /^incident\\.(triggered|acknowledged)$/ && pagerduty.canWrite",
+          "group": "3_respond@6"
+        },
+        {
+          "command": "pagerduty.changeUrgency",
+          "when": "viewItem =~ /^incident\\.(triggered|acknowledged)$/ && pagerduty.canWrite",
+          "group": "4_edit@1"
+        },
+        {
+          "command": "pagerduty.changePriority",
+          "when": "viewItem =~ /^incident\\.(triggered|acknowledged)$/ && pagerduty.canWrite",
+          "group": "4_edit@2"
+        },
+        {
+          "command": "pagerduty.merge",
+          "when": "viewItem =~ /^incident\\.(triggered|acknowledged)$/ && pagerduty.canWrite",
+          "group": "4_edit@3"
+        },
+        {
+          "command": "pagerduty.runWorkflow",
+          "when": "viewItem =~ /^incident\\./ && pagerduty.canWrite",
+          "group": "4_edit@4"
+        },
+        {
+          "command": "pagerduty.askPaige",
+          "when": "viewItem =~ /^incident\\./ && pagerduty.canWrite",
+          "group": "5_ai@1"
+        },
+        {
+          "command": "pagerduty.askAgent",
+          "when": "viewItem =~ /^incident\\./",
+          "group": "5_ai@2"
+        },
+        {
+          "command": "pagerduty.addFollowUp",
+          "when": "viewItem =~ /^incident\\./ && pagerduty.canWrite",
+          "group": "6_learn@1"
+        },
+        {
+          "command": "pagerduty.postmortemDraft",
+          "when": "viewItem =~ /^incident\\./",
+          "group": "6_learn@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "pagerduty.signIn",
+          "when": "!pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.signOut",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.refresh",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.openIncident",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.acknowledge",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.resolve",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.openInBrowser",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.filter",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.clearFilter",
+          "when": "pagerduty.filtered"
+        },
+        {
+          "command": "pagerduty.search",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.incidentActions",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.escalate",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.reassign",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.addResponders",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.snooze",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.changeUrgency",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.changePriority",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.addNote",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.merge",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.statusUpdate",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.runWorkflow",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.askPaige",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.askAgent",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.addFollowUp",
+          "when": "pagerduty.signedIn && pagerduty.canWrite"
+        },
+        {
+          "command": "pagerduty.postmortemDraft",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.connectRelay",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.disconnectRelay",
+          "when": "pagerduty.signedIn"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "PagerDuty",
+      "properties": {
+        "pagerduty.region": {
+          "type": "string",
+          "enum": [
+            "us",
+            "eu"
+          ],
+          "default": "us",
+          "description": "Service region of your PagerDuty account."
+        },
+        "pagerduty.serviceId": {
+          "type": "string",
+          "default": "",
+          "description": "PagerDuty service ID for the status bar on-call display. A .pagerduty.json file in the workspace root takes precedence."
+        },
+        "pagerduty.pollIntervalSeconds": {
+          "type": "number",
+          "default": 30,
+          "minimum": 15,
+          "description": "How often to poll while the window is focused. Unfocused windows poll every 2 minutes."
+        },
+        "pagerduty.notifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Notify when a new incident is assigned to you."
+        },
+        "pagerduty.theme": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "light",
+            "dark"
+          ],
+          "default": "auto",
+          "description": "Incident pane theme. Auto follows the VS Code colour theme."
+        },
+        "pagerduty.oauthClientId": {
+          "type": "string",
+          "default": "",
+          "description": "Client ID of a PagerDuty OAuth app (PKCE). Leave empty to sign in with a user API token.",
+          "scope": "application"
+        },
+        "pagerduty.changeWindowHours": {
+          "type": "number",
+          "default": 24,
+          "minimum": 1,
+          "description": "How far before an incident's trigger time to look for commits in the open workspace."
+        },
+        "pagerduty.agentTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Register PagerDuty's official MCP server with the editor's agent chat, using this extension's sign-in."
+        },
+        "pagerduty.apiBaseUrl": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "description": "Override the PagerDuty REST API base URL (for a proxy). Leave empty to use the region's API. Must be https."
+        },
+        "pagerduty.relayUrl": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "description": "URL of the optional push relay for near-real-time updates. Set with 'PagerDuty: Connect Push Relay'."
+        }
+      }
+    },
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "pagerduty.mcp",
+        "label": "PagerDuty"
+      }
+    ],
+    "chatParticipants": [
+      {
+        "id": "pagerduty.chat",
+        "name": "pagerduty",
+        "fullName": "PagerDuty",
+        "description": "Ask about and act on your incidents. Works with voice input.",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "mine",
+            "description": "My open incidents"
+          },
+          {
+            "name": "summary",
+            "description": "Summarise an incident and suggest next steps"
+          },
+          {
+            "name": "ack",
+            "description": "Acknowledge an incident"
+          },
+          {
+            "name": "resolve",
+            "description": "Resolve an incident"
+          },
+          {
+            "name": "note",
+            "description": "Add a note to an incident"
+          },
+          {
+            "name": "paige",
+            "description": "Ask Paige to investigate"
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "package": "npm run typecheck && npm test && npm run build -- --production && vsce package --no-dependencies --allow-missing-repository",
+    "publish:marketplace": "vsce publish --no-dependencies --allow-missing-repository --packagePath pagerduty-incidents-$npm_package_version.vsix",
+    "publish:openvsx": "ovsx publish pagerduty-incidents-$npm_package_version.vsix",
+    "test:e2e": "npm run build && node test/e2e/run.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.24.2",
+    "ovsx": "^0.10.12",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  }
+}

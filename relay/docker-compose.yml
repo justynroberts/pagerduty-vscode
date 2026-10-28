@@ -1,0 +1,10 @@
+services:
+  pagerduty-relay:
+    container_name: pagerduty-relay
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:?set the PagerDuty webhook signing secret}
+      RELAY_TOKEN: ${RELAY_TOKEN:?set a long random token for editors}
