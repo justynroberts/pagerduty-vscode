@@ -235,15 +235,47 @@ export async function activate(ctx: vscode.ExtensionContext): Promise<TestingApi
     try {
       me = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Signing in to PagerDuty' }, () => api.me());
     } catch (e) {
-      await auth.store(undefined);
-      void vscode.window.showErrorMessage(`PagerDuty sign-in failed: ${(e as Error).message}`);
-      return;
+      // An account-level key works, but PagerDuty needs to know which user is acting.
+      const user = e instanceof PdError && e.code === 'account_level_key' ? await chooseActingUser() : undefined;
+      if (!user) {
+        await auth.store(undefined);
+        if (!(e instanceof PdError && e.code === 'account_level_key')) void vscode.window.showErrorMessage(`PagerDuty sign-in failed: ${(e as Error).message}`);
+        return;
+      }
+      await auth.store({ ...creds, user });
+      try {
+        me = await api.me();
+      } catch (e2) {
+        await auth.store(undefined);
+        void vscode.window.showErrorMessage(`PagerDuty sign-in failed: ${(e2 as Error).message}`);
+        return;
+      }
     }
     store.start(me);
     void relay.restart();
     void vscode.window.showInformationMessage(`Signed in to PagerDuty as ${me.name}.`);
     void vscode.commands.executeCommand('pagerduty.mine.focus');
   });
+
+  // Account-level keys: pick the PagerDuty user you act as. Writes carry that user's email in From.
+  async function chooseActingUser(): Promise<{ id: string; email: string } | undefined> {
+    const email = await vscode.window.showInputBox({
+      title: 'Account-level API key',
+      prompt: 'This key is not tied to a user. Enter your PagerDuty login email: actions are recorded as you.',
+      placeHolder: 'you@company.com',
+      ignoreFocusOut: true,
+      validateInput: (v) => (/^\S+@\S+\.\S+$/.test(v.trim()) ? undefined : 'Enter an email address.'),
+    });
+    if (!email) return undefined;
+    const users = await api.searchUsers(email.trim()).catch(() => []);
+    const exact = users.filter((u) => u.email.toLowerCase() === email.trim().toLowerCase());
+    if (exact.length === 1) return { id: exact[0].id, email: exact[0].email };
+    const pick = await vscode.window.showQuickPick(users.map((u) => ({ label: u.name, description: u.email, u })), {
+      title: 'Which PagerDuty user are you?',
+      placeHolder: users.length ? 'Pick your user' : 'No user matched that email',
+    });
+    return pick ? { id: pick.u.id, email: pick.u.email } : undefined;
+  }
 
   command('pagerduty.signOut', () => signOut());
   command('pagerduty.refresh', () => store.sync());
@@ -374,8 +406,8 @@ export async function activate(ctx: vscode.ExtensionContext): Promise<TestingApi
     store,
     panels,
     relay,
-    async signInWithToken(token: string) {
-      await auth.store({ kind: 'token', accessToken: token });
+    async signInWithToken(token: string, user?: { id: string; email: string }) {
+      await auth.store({ kind: 'token', accessToken: token, user });
       return startSession();
     },
   };
@@ -385,7 +417,7 @@ export interface TestingApi {
   store: Store;
   panels: PanelManager;
   relay: RelayClient;
-  signInWithToken(token: string): Promise<boolean>;
+  signInWithToken(token: string, user?: { id: string; email: string }): Promise<boolean>;
 }
 
 export function deactivate(): void {}

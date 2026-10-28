@@ -15,6 +15,8 @@ npm run typecheck      # tsc --noEmit over src/, webview/, test/
 npm test               # vitest run
 npx vitest run test/api.test.ts -t "backs off"   # single file / single test
 npm run test:e2e       # real VS Code (local install or downloaded) + test/e2e/mock-pagerduty.mjs + relay
+PD_TOKEN=… npm run check:account   # read-only API client checks against a live account; lists note authors for PAIGE_AUTHOR
+PD_TOKEN=… npm run test:real       # read-only run of the extension in real VS Code against a live account
 npm run package        # typecheck + test + clean production build + .vsix
 npm run publish:marketplace / publish:openvsx    # need VSCE_PAT / OVSX_PAT
 ```
@@ -37,11 +39,12 @@ The extension host owns all state and every network call. The surfaces only rend
 - `src/relay.ts` + `relay/server.mjs`: an optional push relay. The relay verifies `X-PagerDuty-Signature` and forwards only `{type, incidentId}` over SSE. The client debounces events into `store.sync()`, and `store.setLive` relaxes polling while connected. The relay has no dependencies and ships as a container (`relay/Dockerfile`, container name `pagerduty-relay`).
 - Follow-ups are notes prefixed `Follow-up:` (`model.ts#FOLLOW_UP_PREFIX`). `buildPostmortem` is a pure Markdown builder.
 - Test mode: `activate()` returns a `TestingApi` (store, panels, relay, `signInWithToken`) only when `extensionMode === Test`. Panes then send a `rendered` report (info button, reduced-motion rule, action count) so the e2e can prove the webview rendered under the real CSP. `pagerduty.apiBaseUrl` (application scope, https or loopback http) points the client at the mock. When you add an API call, add a mock route in `test/e2e/mock-pagerduty.mjs`.
+- Account-level API keys: `/users/me` returns 400, and `api.ts` turns that into `PdError.code === 'account_level_key'`. Sign-in then asks for the user's email (`chooseActingUser`) and stores `Credentials.user`. `me()` reads `/users/{id}`, and writes send that email as `From`. Verified against a live account on 2026-10-28.
 - `src/auth.ts`: user API token by default. OAuth PKCE is offered only when a client ID is set (`BUNDLED_CLIENT_ID` or `pagerduty.oauthClientId`). It uses classic `app.pagerduty.com/oauth/*` with `scope=write`, which is still unverified against a real registered app. The redirect goes through `asExternalUri` for remote windows.
 
 ## Paige: what's real
 
-PagerDuty has no public REST API for chatting with Paige or reading its findings. Ask Paige starts the service's manually triggered incident workflow whose name matches `/paige|sre agent/i`, via `GET /incident_workflows/triggers?incident_id=&trigger_type=manual` then `POST /incident_workflows/{id}/instances`. The pane shows notes and log entries whose author or agent matches `PAIGE_AUTHOR` in `webview/App.tsx`. Matching by author name is a heuristic: confirm it against a real Paige run and adjust it. Past, related and outlier incidents need the AIOps / Event Intelligence plan; `store.ts#slot` turns 402/403/404 into an `unavailable` message rather than an error.
+PagerDuty has no public REST API for chatting with Paige or reading its findings. Ask Paige starts the service's manually triggered incident workflow whose name matches `/paige|sre agent/i`, via `GET /incident_workflows/triggers?incident_id=&trigger_type=manual` then `POST /incident_workflows/{id}/instances`. The pane shows notes and log entries whose author or agent matches `PAIGE_AUTHOR` in `src/model.ts`. Matching by author name is a heuristic. `npm run check:account` lists the real authors and agents on recent incidents. The live test account had no Paige workflow or Paige-authored entries, so the match is still unconfirmed. Past, related and outlier incidents need the AIOps / Event Intelligence plan; `store.ts#slot` turns 402/403/404 into an `unavailable` message rather than an error.
 
 ## Rules that are easy to break
 

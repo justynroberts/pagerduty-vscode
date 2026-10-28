@@ -616,7 +616,9 @@
     "package": "npm run typecheck && npm test && npm run build -- --production && vsce package --no-dependencies --allow-missing-repository",
     "publish:marketplace": "vsce publish --no-dependencies --allow-missing-repository --packagePath pagerduty-incidents-$npm_package_version.vsix",
     "publish:openvsx": "ovsx publish pagerduty-incidents-$npm_package_version.vsix",
-    "test:e2e": "npm run build && node test/e2e/run.mjs"
+    "test:e2e": "npm run build && node test/e2e/run.mjs",
+    "check:account": "esbuild scripts/check-account.ts --bundle --platform=node --format=esm --target=node18 --outfile=dist/check-account.mjs --log-level=warning && node dist/check-account.mjs",
+    "test:real": "npm run build && node test/e2e/run-real.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",

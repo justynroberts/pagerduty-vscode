@@ -47,10 +47,16 @@ export interface Credentials {
   refreshToken?: string;
   expiresAt?: number;
   clientId?: string;
+  // Account-level API keys carry no user identity; the user picks who they are at sign-in.
+  user?: { id: string; email: string };
 }
 
 export class PdError extends Error {
-  constructor(message: string, readonly status: number) {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code?: 'account_level_key',
+  ) {
     super(message);
   }
   get isPermission(): boolean {
@@ -97,7 +103,7 @@ export class PagerDutyClient {
             Accept: 'application/vnd.pagerduty+json;version=2',
             Authorization: creds.kind === 'oauth' ? `Bearer ${creds.accessToken}` : `Token token=${creds.accessToken}`,
             ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-            ...(method !== 'GET' && this.o.fromEmail?.() ? { From: this.o.fromEmail()! } : {}),
+            ...(method !== 'GET' && (creds.user?.email ?? this.o.fromEmail?.()) ? { From: (creds.user?.email ?? this.o.fromEmail?.())! } : {}),
           },
           body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
         });
@@ -140,7 +146,9 @@ export class PagerDutyClient {
   }
 
   async me(): Promise<Me> {
-    const r = await this.request<{ user: unknown }>('GET', '/users/me', { query: { 'include[]': ['teams'] } });
+    const creds = await this.o.credentials();
+    const path = creds?.user ? `/users/${encodeURIComponent(creds.user.id)}` : '/users/me';
+    const r = await this.request<{ user: unknown }>('GET', path, { query: { 'include[]': ['teams'] } });
     return normaliseMe(r.user);
   }
 
@@ -315,11 +323,13 @@ export function encodeQuery(q: Query | undefined): string {
 async function toError(res: Response): Promise<PdError> {
   let detail = '';
   try {
-    const body = (await res.json()) as { error?: { message?: string; errors?: string[] } };
-    detail = [body.error?.message, ...(body.error?.errors ?? [])].filter(Boolean).join(': ');
+    // PagerDuty returns either { error: { message, errors } } or { error: "text" }.
+    const body = (await res.json()) as { error?: string | { message?: string; errors?: string[] } };
+    detail = typeof body.error === 'string' ? body.error : [body.error?.message, ...(body.error?.errors ?? [])].filter(Boolean).join(': ');
   } catch {
     // Non-JSON error bodies fall back to the status text.
   }
+  if (res.status === 400 && /account-level/i.test(detail)) return new PdError(detail, 400, 'account_level_key');
   if (res.status === 402) return new PdError(`Not included in this PagerDuty plan${detail ? ` (${detail})` : ''}.`, 402);
   if (res.status === 403) return new PdError(`Your PagerDuty role doesn't allow this${detail ? ` (${detail})` : ''}.`, 403);
   if (res.status === 401) return new PdError('PagerDuty rejected the credentials. Sign in again.', 401);

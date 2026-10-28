@@ -17,6 +17,7 @@ Or in VS Code: Extensions view → `…` menu → **Install from VSIX…**. Curs
 Click the PagerDuty icon in the activity bar, then **Sign In**.
 
 - **User API token** (works on every account): in PagerDuty open *My Profile → User Settings → Create API User Token*, then paste it. The token is stored in VS Code's secret storage, never in settings.
+- **Account-level API key** (an admin's general key): paste it the same way. The extension then asks for your PagerDuty login email, so that actions are recorded as you.
 - **Browser sign-in (OAuth)**: offered when an OAuth client ID is configured (`pagerduty.oauthClientId`, or bundled in a release build). One browser round trip, then back to VS Code.
 
 EU accounts: set `pagerduty.region` to `eu` before signing in.
@@ -81,6 +82,10 @@ npm run build        # bundle host + webview into dist/
 npm test             # vitest
 npm run typecheck
 npm run test:e2e     # real VS Code + mock PagerDuty API + push relay
+
+# Read-only checks against a live account (token stays on your machine)
+PD_TOKEN=... [PD_USER_EMAIL=...] npm run check:account   # API client only
+PD_TOKEN=... [PD_USER_EMAIL=...] npm run test:real       # the extension in real VS Code
 ```
 
 Press F5 in VS Code to launch an Extension Development Host.

@@ -2,7 +2,7 @@
 
 ## 0.1.0
 
-- Sign in with a user API token or OAuth (PKCE), stored in SecretStorage
+- Sign in with a user API token, an account-level API key (pick your user) or OAuth (PKCE), stored in SecretStorage
 - My Incidents, My Teams, All Incidents and On Call Now views with search and filters
 - Incident pane with timeline, responders, notes and alerts
 - Acknowledge and resolve with optimistic updates, rollback and a local audit log

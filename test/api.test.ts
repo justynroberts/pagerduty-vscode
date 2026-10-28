@@ -59,3 +59,22 @@ describe('PagerDutyClient', () => {
     expect(encodeQuery({ 'statuses[]': ['triggered', 'acknowledged'], skip: undefined })).toBe('?statuses%5B%5D=triggered&statuses%5B%5D=acknowledged');
   });
 });
+
+describe('account-level API keys', () => {
+  it('recognises the account-level error and acts as the chosen user', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(json(400, { error: 'Because this request was made using an account-level access token, we were unable to determine the user’s identity.' }))
+      .mockResolvedValueOnce(json(200, { user: { id: 'PU7', name: 'Alice', email: 'alice@example.com', role: 'user', teams: [] } }))
+      .mockResolvedValueOnce(json(200, { incident: { id: 'Q1' } }));
+    let user: { id: string; email: string } | undefined;
+    const c = new PagerDutyClient({ apiBase: () => 'https://api.test', credentials: async () => ({ kind: 'token', accessToken: 'k', user }), refresh: vi.fn(), fetch });
+    const err = (await c.me().catch((e: unknown) => e)) as PdError;
+    expect(err.code).toBe('account_level_key');
+    user = { id: 'PU7', email: 'alice@example.com' };
+    expect((await c.me()).id).toBe('PU7');
+    expect((fetch.mock.calls[1] as unknown as [string])[0]).toContain('/users/PU7');
+    await c.setStatus('Q1', 'acknowledged');
+    expect((fetch.mock.calls[2] as unknown as [string, RequestInit])[1].headers).toMatchObject({ From: 'alice@example.com' });
+  });
+});

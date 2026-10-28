@@ -331,6 +331,10 @@ export function normaliseTrigger(r: Raw): WorkflowTrigger {
 
 export const isPaigeWorkflow = (t: WorkflowTrigger) => /paige|sre agent/i.test(t.workflowName);
 
+// How Paige shows up as a note author or log-entry agent. Checked against real data with
+// `npm run check:account`; adjust here if your account names it differently.
+export const PAIGE_AUTHOR = /paige|pagerduty (ai|advance)|sre agent/i;
+
 const CODE_EXT = 'ts|tsx|js|jsx|mjs|cjs|py|go|java|kt|rb|rs|cs|php|scala|swift|c|cc|cpp|h|hpp|ex|exs|clj|lua|sql|yaml|yml|tf';
 const PATH_RE = new RegExp(
   String.raw`(?:^|[\s"'(\[=@])(\/?(?:[\w.@-]+\/)*[\w.@-]+\.(?:${CODE_EXT}))\b(?::(\d+)|"?,\s*line\s+(\d+)|\((\d+)\))?`,

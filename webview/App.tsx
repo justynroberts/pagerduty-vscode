@@ -1,5 +1,5 @@
 import { Fragment, KeyboardEvent, ReactNode, useEffect, useRef, useState } from 'react';
-import { FOLLOW_UP_PREFIX, followUpText, formatAge, Incident, IncidentDetail, Insights, isFollowUp, RelatedIncident, STATUS_LABEL } from '../src/model';
+import { PAIGE_AUTHOR, FOLLOW_UP_PREFIX, followUpText, formatAge, Incident, IncidentDetail, Insights, isFollowUp, RelatedIncident, STATUS_LABEL } from '../src/model';
 import type { HostMessage, PaneAction, PaneMessage, PaneState } from '../src/protocol';
 import { Check, CheckAll, Close, External, Info, KindMarker, Refresh, Sparkle, StatusShape } from './icons';
 
@@ -9,7 +9,6 @@ const send = (m: PaneMessage) => vscode.postMessage(m);
 const act = (action: PaneAction, workflowId?: string) => send({ type: 'action', action, workflowId });
 
 const MAX_DETAILS_CHARS = 20_000;
-const PAIGE_AUTHOR = /paige|pagerduty (ai|advance)|sre agent/i;
 
 export function App() {
   const [state, setState] = useState<PaneState>();

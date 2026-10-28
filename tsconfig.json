@@ -12,5 +12,5 @@
     "isolatedModules": true,
     "types": ["node", "vscode"]
   },
-  "include": ["src", "webview", "test", "relay/*.d.mts"]
+  "include": ["src", "webview", "test", "scripts", "relay/*.d.mts"]
 }
