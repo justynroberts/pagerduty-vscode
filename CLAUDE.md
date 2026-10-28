@@ -21,7 +21,7 @@ npm run package        # typecheck + test + clean production build + .vsix
 npm run publish:marketplace / publish:openvsx    # need VSCE_PAT / OVSX_PAT
 ```
 
-F5 (`.vscode/launch.json`) builds and opens an Extension Development Host. `vsce` runs with `--no-dependencies --allow-missing-repository`. Everything is bundled, so the `.vsix` has no `node_modules`. Keep it that way: runtime deps go into the bundle, never `dependencies`.
+F5 (`.vscode/launch.json`) builds and opens an Extension Development Host. `vsce` runs with `--no-dependencies`. Everything is bundled, so the `.vsix` has no `node_modules`. Keep it that way: runtime deps go into the bundle, never `dependencies`.
 
 ## Architecture
 
