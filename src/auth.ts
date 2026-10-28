@@ -18,6 +18,9 @@ export class AuthManager implements vscode.UriHandler {
   private pending?: { state: string; resolve: (code: string) => void; reject: (e: Error) => void };
   private readonly changed = new vscode.EventEmitter<void>();
   readonly onDidChange = this.changed.event;
+  // Test seams: the extension tests point these at a mock OAuth server and a fake browser.
+  appBaseOverride?: string;
+  openBrowser: (uri: vscode.Uri) => Thenable<boolean> = (uri) => vscode.env.openExternal(uri);
 
   constructor(
     private readonly ctx: vscode.ExtensionContext,
@@ -93,16 +96,18 @@ export class AuthManager implements vscode.UriHandler {
     });
   }
 
-  private async oauth(clientId: string): Promise<Credentials | undefined> {
+  private appBase(): string {
+    return this.appBaseOverride ?? regionHosts(this.region()).app;
+  }
+
+  async oauth(clientId: string): Promise<Credentials | undefined> {
     const verifier = b64url(randomBytes(32));
     const challenge = b64url(createHash('sha256').update(verifier).digest());
     const state = b64url(randomBytes(16));
     // asExternalUri makes the vscode:// callback work under Remote SSH, WSL and Codespaces.
     const callback = await vscode.env.asExternalUri(vscode.Uri.parse(`${vscode.env.uriScheme}://${this.ctx.extension.id}/auth`));
     const redirectUri = callback.toString(true);
-    const { app } = regionHosts(this.region());
-
-    const authorize = new URL('/oauth/authorize', app);
+    const authorize = new URL('/oauth/authorize', this.appBase());
     authorize.search = new URLSearchParams({
       client_id: clientId,
       redirect_uri: redirectUri,
@@ -129,7 +134,7 @@ export class AuthManager implements vscode.UriHandler {
             reject: (e) => finish(() => reject(e)),
           };
           cancel.onCancellationRequested(() => finish(() => resolve(undefined)));
-          void vscode.env.openExternal(vscode.Uri.parse(authorize.toString()));
+          void this.openBrowser(vscode.Uri.parse(authorize.toString()));
         }),
     );
     if (!code) return undefined;
@@ -159,8 +164,7 @@ export class AuthManager implements vscode.UriHandler {
   }
 
   private async tokenRequest(params: Record<string, string>): Promise<Pick<Credentials, 'accessToken' | 'refreshToken' | 'expiresAt'>> {
-    const { app } = regionHosts(this.region());
-    const res = await fetch(new URL('/oauth/token', app), {
+    const res = await fetch(new URL('/oauth/token', this.appBase()), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
       body: new URLSearchParams(params).toString(),

@@ -88,4 +88,36 @@ exports.run = async function () {
   await vscode.commands.executeCommand('pagerduty.signOut');
   assert.equal(api.store.signedIn, false);
   step('sign out clears the session');
+
+  // Browser sign-in: PKCE authorize → vscode:// redirect → token exchange → Bearer requests → refresh on 401.
+  api.auth.appBaseOverride = MOCK_URL;
+  let opened;
+  api.auth.openBrowser = async (uri) => {
+    opened = uri.toString(true);
+    const r = await (await fetch(opened)).json(); // the "browser" approves and PagerDuty redirects back
+    const back = new URL(r.redirect);
+    back.searchParams.set('code', r.code);
+    back.searchParams.set('state', r.state);
+    setTimeout(() => api.auth.handleUri(vscode.Uri.parse(back.toString())), 50);
+    return true;
+  };
+  const creds = await api.auth.oauth('test-client');
+  assert.ok(opened.includes('code_challenge_method=S256'));
+  assert.equal(creds.kind, 'oauth');
+  assert.equal(creds.accessToken, 'access-1');
+  assert.ok(await api.signInWithCredentials(creds));
+  reqs = await requests();
+  assert.equal(reqs.filter((r) => r.path === '/users/me').at(-1).auth, 'Bearer access-1');
+  step('OAuth PKCE sign-in: authorize, state check, code exchange, Bearer auth');
+
+  // A forged redirect with the wrong state must be ignored.
+  api.auth.handleUri(vscode.Uri.parse(`${vscode.env.uriScheme}://fintonlabs.pagerduty-incidents/auth?code=evil&state=wrong`));
+  await fetch(`${MOCK_URL}/__expire`);
+  await api.store.sync();
+  assert.equal(api.store.error, undefined, `sync after expiry: ${api.store.error}`);
+  reqs = await requests();
+  assert.ok(reqs.some((r) => r.auth === 'Bearer access-2'), 'retried with the refreshed token');
+  assert.equal((await api.auth.get()).accessToken, 'access-2', 'refreshed token persisted');
+  step('expired access token refreshes once and the request retries');
+  await vscode.commands.executeCommand('pagerduty.signOut');
 };

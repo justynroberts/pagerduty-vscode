@@ -1,5 +1,6 @@
 // A small stand-in for the PagerDuty REST API, with enough fixture data to drive every surface.
 // GET /__requests returns what the extension called, so the test can assert on real traffic.
+import { createHash } from 'node:crypto';
 import http from 'node:http';
 
 export function createMockPagerDuty() {
@@ -23,6 +24,9 @@ export function createMockPagerDuty() {
   };
   const notes = { Q1: [{ id: 'N1', content: 'Looking at the pool', created_at: ago(5), user: ref('PU1', 'Ada Lovelace') }] };
 
+  // OAuth: codes remember their PKCE challenge; tokens are tracked so refresh can be exercised.
+  const oauth = { codes: new Map(), valid: new Set(), expireNext: false, refreshed: 0 };
+
   const send = (res, status, body) => {
     res.writeHead(status, { 'content-type': 'application/json' });
     res.end(body === undefined ? '' : JSON.stringify(body));
@@ -33,10 +37,45 @@ export function createMockPagerDuty() {
     let raw = '';
     req.on('data', (c) => (raw += c));
     req.on('end', () => {
-      const body = raw ? JSON.parse(raw) : undefined;
+      let body;
+      try {
+        body = raw ? JSON.parse(raw) : undefined;
+      } catch {
+        body = undefined; // form-encoded OAuth token requests are read from `raw`
+      }
       if (url.pathname === '/__requests') return send(res, 200, requests);
       requests.push({ method: req.method, path: url.pathname, query: url.search, body, auth: req.headers.authorization, from: req.headers.from });
-      if (req.headers.authorization !== 'Token token=test-token') return send(res, 401, { error: { message: 'bad token' } });
+      if (url.pathname === '/oauth/authorize') {
+        const q = url.searchParams;
+        if (q.get('client_id') !== 'test-client' || q.get('code_challenge_method') !== 'S256' || !q.get('state')) return send(res, 400, { error: 'bad authorize request' });
+        const code = `code-${Date.now()}`;
+        oauth.codes.set(code, { challenge: q.get('code_challenge'), redirect: q.get('redirect_uri') });
+        return send(res, 200, { code, state: q.get('state'), redirect: q.get('redirect_uri') });
+      }
+      if (url.pathname === '/oauth/token') {
+        const f = new URLSearchParams(raw);
+        if (f.get('grant_type') === 'authorization_code') {
+          const c = oauth.codes.get(f.get('code'));
+          const verifierHash = createHash('sha256').update(f.get('code_verifier') ?? '').digest('base64url');
+          if (!c || c.challenge !== verifierHash || c.redirect !== f.get('redirect_uri')) return send(res, 400, { error: 'invalid_grant' });
+          oauth.codes.delete(f.get('code'));
+          oauth.valid.add('access-1');
+          return send(res, 200, { access_token: 'access-1', refresh_token: 'refresh-1', expires_in: 3600 });
+        }
+        if (f.get('grant_type') === 'refresh_token' && f.get('refresh_token') === 'refresh-1') {
+          oauth.refreshed++;
+          oauth.valid.add('access-2');
+          return send(res, 200, { access_token: 'access-2', expires_in: 3600 });
+        }
+        return send(res, 400, { error: 'invalid_grant' });
+      }
+      if (url.pathname === '/__expire') {
+        oauth.valid.delete('access-1');
+        return send(res, 200, {});
+      }
+      const bearer = /^Bearer (.+)$/.exec(req.headers.authorization ?? '')?.[1];
+      const authed = req.headers.authorization === 'Token token=test-token' || (bearer && oauth.valid.has(bearer));
+      if (!authed) return send(res, 401, { error: { message: 'bad token' } });
       const p = url.pathname;
       let m;
       if (p === '/users/me') return send(res, 200, { user: { id: 'PU1', name: 'Ada Lovelace', email: 'ada@example.com', role: 'user', teams: [ref('PT1', 'Payments')] } });

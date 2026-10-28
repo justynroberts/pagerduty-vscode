@@ -1,7 +1,7 @@
 // Entry point: wires auth, the API client, the store and every surface together.
 
 import * as vscode from 'vscode';
-import { PagerDutyClient, PdError, Region, resolveApiBase } from './api';
+import { Credentials, PagerDutyClient, PdError, Region, resolveApiBase } from './api';
 import { AuditLog } from './audit';
 import { AuthManager } from './auth';
 import { CodeContext } from './codeContext';
@@ -406,6 +406,11 @@ export async function activate(ctx: vscode.ExtensionContext): Promise<TestingApi
     store,
     panels,
     relay,
+    auth,
+    async signInWithCredentials(c: Credentials) {
+      await auth.store(c);
+      return startSession();
+    },
     async signInWithToken(token: string, user?: { id: string; email: string }) {
       await auth.store({ kind: 'token', accessToken: token, user });
       return startSession();
@@ -414,6 +419,8 @@ export async function activate(ctx: vscode.ExtensionContext): Promise<TestingApi
 }
 
 export interface TestingApi {
+  auth: AuthManager;
+  signInWithCredentials(c: Credentials): Promise<boolean>;
   store: Store;
   panels: PanelManager;
   relay: RelayClient;
