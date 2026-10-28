@@ -2,6 +2,7 @@
 // triggers an immediate sync and polling relaxes to the slow interval as a safety net.
 
 import * as vscode from 'vscode';
+import { isSafeRelayUrl } from './model';
 import { Store } from './store';
 
 const TOKEN_KEY = 'pagerduty.relayToken';
@@ -45,6 +46,11 @@ export class RelayClient implements vscode.Disposable {
     const url = this.url();
     const token = await this.ctx.secrets.get(TOKEN_KEY);
     if (!url || !token || !this.store.signedIn) return;
+    if (!isSafeRelayUrl(url)) {
+      this.setState('error', 'pagerduty.relayUrl must use https (http only for localhost). Not connecting.');
+      this.log.error(this.lastError!);
+      return;
+    }
     this.backoff = 1000;
     void this.connect(url, token);
   }

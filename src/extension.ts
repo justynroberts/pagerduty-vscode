@@ -8,7 +8,7 @@ import { CodeContext } from './codeContext';
 import { watchMapping } from './mapping';
 import { registerChat } from './chat';
 import { registerMcp } from './mcp';
-import { DEFAULT_FILTER, Filter, Incident, IncidentStatus, Mapping, Me, STATUS_LABEL, Scope, canWrite, isFiltered, selectIncidents } from './model';
+import { DEFAULT_FILTER, isSafeRelayUrl, Filter, Incident, IncidentStatus, Mapping, Me, STATUS_LABEL, Scope, canWrite, isFiltered, selectIncidents } from './model';
 import { PanelManager } from './panel';
 import { RelayClient } from './relay';
 import { registerRespondCommands } from './respond';
@@ -367,15 +367,7 @@ export async function activate(ctx: vscode.ExtensionContext): Promise<TestingApi
       prompt: 'Relay URL, e.g. https://pd-relay.example.com. See relay/README.md to run one.',
       value: cfg().get<string>('relayUrl', ''),
       ignoreFocusOut: true,
-      validateInput: (v) => {
-        try {
-          const u = new URL(v.trim());
-          const loopback = u.hostname === '127.0.0.1' || u.hostname === 'localhost';
-          return u.protocol === 'https:' || (u.protocol === 'http:' && loopback) ? undefined : 'Use https (http only for localhost).';
-        } catch {
-          return 'Enter a full URL.';
-        }
-      },
+      validateInput: (v) => (isSafeRelayUrl(v.trim()) ? undefined : 'Enter a full https URL (http only for localhost).'),
     });
     if (!url) return;
     const token = await vscode.window.showInputBox({ title: 'Connect push relay (2/2)', prompt: 'The relay’s RELAY_TOKEN', password: true, ignoreFocusOut: true });

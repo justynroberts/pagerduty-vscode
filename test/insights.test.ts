@@ -73,3 +73,20 @@ describe('response request bodies', () => {
     await expect(c.pastIncidents('Q1')).rejects.toMatchObject({ status: 402 });
   });
 });
+
+describe('security guards', async () => {
+  const { isSafeRelayUrl, isCommitHash } = await import('../src/model');
+  it('passes only real commit hashes to git', () => {
+    expect(isCommitHash('a1b2c3d')).toBe(true);
+    expect(isCommitHash('--output=/tmp/x')).toBe(false);
+    expect(isCommitHash('a1b2c3d~1')).toBe(false);
+    expect(isCommitHash('HEAD')).toBe(false);
+  });
+  it('only sends the relay token over https or to loopback', () => {
+    expect(isSafeRelayUrl('https://relay.example.com')).toBe(true);
+    expect(isSafeRelayUrl('http://127.0.0.1:8787')).toBe(true);
+    expect(isSafeRelayUrl('http://relay.example.com')).toBe(false);
+    expect(isSafeRelayUrl('javascript:alert(1)')).toBe(false);
+    expect(isSafeRelayUrl('not a url')).toBe(false);
+  });
+});

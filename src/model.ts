@@ -457,3 +457,17 @@ export function parseChatIntent(text: string, command?: string): { intent: ChatI
   }
   return { intent, number, rest };
 }
+
+// Push relay URLs carry a bearer token: https only, plain http just for loopback (local testing).
+export function isSafeRelayUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    const loopback = u.hostname === '127.0.0.1' || u.hostname === 'localhost' || u.hostname === '[::1]';
+    return u.protocol === 'https:' || (u.protocol === 'http:' && loopback);
+  } catch {
+    return false;
+  }
+}
+
+// Commit ids reach git as arguments; only a real object id is accepted, never "--output=…".
+export const isCommitHash = (h: string) => /^[0-9a-f]{7,64}$/i.test(h);

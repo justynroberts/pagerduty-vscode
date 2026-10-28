@@ -3,7 +3,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { Commit, Incident, IncidentDetail, LikelyFile, Slot, extractPaths } from './model';
+import { Commit, Incident, IncidentDetail, LikelyFile, Slot, extractPaths, isCommitHash } from './model';
 
 // The subset of the built-in Git extension's API (vscode.git, API v1) used here.
 interface GitCommit {
@@ -126,15 +126,20 @@ export class CodeContext {
 }
 
 export async function openFile(fsPath: string, line?: number): Promise<void> {
-  const uri = vscode.Uri.file(fsPath);
-  // Only open files inside the workspace; paths come from incident content.
-  if (!vscode.workspace.getWorkspaceFolder(uri)) return;
+  // Only open files inside the workspace; paths come from incident content. Normalise first so
+  // "<workspace>/../elsewhere" can't pass the prefix check.
+  const resolved = path.resolve(fsPath);
+  const uri = vscode.Uri.file(resolved);
+  const folder = vscode.workspace.getWorkspaceFolder(uri);
+  if (!folder || !(resolved === folder.uri.fsPath || resolved.startsWith(folder.uri.fsPath + path.sep))) return;
   const pos = line && line > 0 ? new vscode.Position(line - 1, 0) : undefined;
   await vscode.window.showTextDocument(uri, { viewColumn: vscode.ViewColumn.One, selection: pos ? new vscode.Range(pos, pos) : undefined });
 }
 
 // Picks a file changed in the commit and opens its diff.
 export async function openCommit(hash: string, repoRoot: string): Promise<void> {
+  // The hash reaches git as an argument: accept only a real object id, never something like "--output=…".
+  if (!isCommitHash(hash)) return;
   const git = await gitApi();
   const repo = git?.repositories.find((r) => r.rootUri.fsPath === repoRoot);
   if (!git || !repo) return;
