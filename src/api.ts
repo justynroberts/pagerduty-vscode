@@ -233,6 +233,11 @@ export class PagerDutyClient {
     return r.users.map((u) => ({ id: u.id, name: u.name, email: u.email }));
   }
 
+  async searchServices(query: string): Promise<Ref[]> {
+    const r = await this.request<{ services: { id: string; name: string }[] }>('GET', '/services', { query: { query, limit: 25, sort_by: 'name' } });
+    return r.services.map((x) => ({ id: x.id, name: x.name }));
+  }
+
   async searchEscalationPolicies(query: string): Promise<Ref[]> {
     const r = await this.request<{ escalation_policies: { id: string; name: string }[] }>('GET', '/escalation_policies', { query: { query, limit: 25 } });
     return r.escalation_policies.map((p) => ({ id: p.id, name: p.name }));

@@ -12,10 +12,12 @@ const STATUS_ICON: Record<Incident['status'], vscode.ThemeIcon> = {
 };
 
 export class IncidentItem extends vscode.TreeItem {
-  constructor(readonly incident: Incident, pending: boolean) {
+  constructor(readonly incident: Incident, pending: boolean, showAssignee = false) {
     super(`#${incident.number} ${incident.title}`, vscode.TreeItemCollapsibleState.None);
     const urgency = incident.urgency === 'low' ? ' · low' : '';
-    this.description = `${incident.service.name} · ${formatAge(incident.createdAt)}${urgency}${pending ? ' · updating…' : ''}`;
+    // Outside "My Incidents" the assignee is the first thing a responder needs to know.
+    const who = showAssignee ? ` · ${incident.assignees[0]?.name ?? 'unassigned'}${incident.assignees.length > 1 ? ` +${incident.assignees.length - 1}` : ''}` : '';
+    this.description = `${incident.service.name}${who} · ${formatAge(incident.createdAt)}${urgency}${pending ? ' · updating…' : ''}`;
     this.iconPath = pending ? new vscode.ThemeIcon('sync~spin') : STATUS_ICON[incident.status];
     this.contextValue = `incident.${incident.status}`;
     this.id = incident.id;
@@ -58,7 +60,7 @@ export class IncidentTree implements vscode.TreeDataProvider<IncidentItem> {
 
   getChildren(): IncidentItem[] {
     if (!this.store.me) return [];
-    return this.items().map((i) => new IncidentItem(i, this.store.pending.has(i.id)));
+    return this.items().map((i) => new IncidentItem(i, this.store.pending.has(i.id), this.scope !== 'mine'));
   }
 
   // Lets the view answer reveal() for keyboard-driven selection.

@@ -7,14 +7,14 @@ Work PagerDuty incidents without leaving the editor. See what's assigned to you,
 From a release `.vsix`:
 
 ```bash
-code --install-extension pagerduty-incidents-0.1.0.vsix
+code --install-extension pagerduty-incidents-0.2.0.vsix
 ```
 
 Or in VS Code: Extensions view → `…` menu → **Install from VSIX…**. Cursor, VSCodium and other forks install the same file.
 
 ## Sign in
 
-Click the PagerDuty icon in the activity bar, then **Sign In**.
+Click the PagerDuty icon in the activity bar (a bell in code brackets), then **Sign In**. **PagerDuty: Getting Started** opens a short walkthrough.
 
 - **User API token** (works on every account): in PagerDuty open *My Profile → User Settings → Create API User Token*, then paste it. The token is stored in VS Code's secret storage, never in settings.
 - **Account-level API key** (an admin's general key): paste it the same way. The extension then asks for your PagerDuty login email, so that actions are recorded as you.
@@ -26,7 +26,7 @@ EU accounts: set `pagerduty.region` to `eu` before signing in.
 
 **Triage.** *My Incidents*, *My Teams* and *All Incidents* views with search and status, urgency and service filters. Triggered incidents assigned to you show as a badge. *On Call Now* lists level-1 on-call per escalation policy. The status bar shows your open count and who is on call for this repo's service. New incidents assigned to you raise a notification with an **Acknowledge** button.
 
-**Respond.** The incident pane opens as an editor tab beside your code. It has every action: acknowledge, resolve, reassign (user or escalation policy), escalate to a level, add responders, snooze, post a status update, change urgency or priority, merge (with a preview), and run any manually triggered incident workflow. Add notes inline with Ctrl/Cmd+Enter. *PagerDuty: Incident Actions…* puts every action for an incident in one keyboard-driven list, and every action is also its own `PagerDuty:` command you can bind. Nothing is bound by default.
+**Respond.** The incident pane opens as an editor tab beside your code. It has every action: acknowledge, resolve, reassign (user or escalation policy), escalate to a level, add responders, snooze, post a status update, change urgency or priority, merge (with a preview), and run any manually triggered incident workflow. Add notes inline with Ctrl/Cmd+Enter. *PagerDuty: Incident Actions…* puts every action for an incident in one keyboard-driven list, and every action is also its own `PagerDuty:` command you can bind. **Copy Incident Summary** puts a paste-ready summary on your clipboard for Slack or a ticket. Nothing is bound by default.
 
 **Paige and AI.**
 - **Ask Paige to investigate** starts the *Paige virtual responder* incident workflow on the incident. Paige's findings and next steps show at the top of the pane as they land. PagerDuty has no public API to chat with Paige directly, so this needs that workflow set up on the service with a manual trigger. The pane tells you if it's missing.
@@ -48,7 +48,7 @@ EU accounts: set `pagerduty.region` to `eu` before signing in.
 
 ## Link a repo to a service
 
-Add `.pagerduty.json` at the repo root so the status bar shows who is on call for it:
+Run **PagerDuty: Link Repo to Service** (it's also offered once after sign-in) and pick the service. That writes a `.pagerduty.json` at the repo root, which you can also write by hand, with autocomplete:
 
 ```json
 {

@@ -42,6 +42,13 @@ export const External = () => (
   </Svg>
 );
 
+export const Copy = () => (
+  <Svg>
+    <rect x="5.5" y="5.5" width="8" height="8" rx="1" />
+    <path d="M10.5 3V2.5h-8v8H3" />
+  </Svg>
+);
+
 export const Refresh = () => (
   <Svg>
     <path d="M13.5 3v3.5H10" />

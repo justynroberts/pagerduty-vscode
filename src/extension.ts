@@ -7,6 +7,7 @@ import { AuthManager } from './auth';
 import { CodeContext } from './codeContext';
 import { watchMapping } from './mapping';
 import { registerChat } from './chat';
+import { linkRepo, offerLinkRepo } from './linkRepo';
 import { registerMcp } from './mcp';
 import { DEFAULT_FILTER, isSafeRelayUrl, Filter, Incident, IncidentStatus, Mapping, Me, STATUS_LABEL, Scope, canWrite, isFiltered, selectIncidents } from './model';
 import { PanelManager } from './panel';
@@ -86,6 +87,7 @@ export async function activate(ctx: vscode.ExtensionContext): Promise<TestingApi
     watchMapping((m) => {
       mapping = m;
       store.setServiceId(m?.serviceId);
+      void vscode.commands.executeCommand('setContext', 'pagerduty.repoLinked', !!m);
     }, log),
     vscode.workspace.onDidGrantWorkspaceTrust(render),
     vscode.workspace.onDidChangeConfiguration((e) => {
@@ -116,6 +118,7 @@ export async function activate(ctx: vscode.ExtensionContext): Promise<TestingApi
     store.start(me);
     log.info(`Signed in as ${me.name} (${me.role})`);
     void relay.restart();
+    setTimeout(() => void offerLinkRepo(ctx, !!mapping), 3000);
     return true;
   }
 
@@ -360,6 +363,10 @@ export async function activate(ctx: vscode.ExtensionContext): Promise<TestingApi
   });
 
   command('pagerduty.showAuditLog', () => audit.show());
+  command('pagerduty.linkRepo', () => linkRepo(api));
+  command('pagerduty.gettingStarted', () =>
+    vscode.commands.executeCommand('workbench.action.openWalkthrough', `${ctx.extension.id}#pagerduty.start`, false),
+  );
 
   command('pagerduty.connectRelay', async () => {
     const url = await vscode.window.showInputBox({

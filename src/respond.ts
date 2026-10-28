@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import { PagerDutyClient, PdError } from './api';
-import { FOLLOW_UP_PREFIX, Incident, IncidentStatus, buildPostmortem, isPaigeWorkflow, selectIncidents, DEFAULT_FILTER, STATUS_LABEL } from './model';
+import { FOLLOW_UP_PREFIX, incidentSummary, Incident, IncidentStatus, buildPostmortem, isPaigeWorkflow, selectIncidents, DEFAULT_FILTER, STATUS_LABEL } from './model';
 import { Store } from './store';
 
 const PAIGE_SETUP_URL = 'https://docs.pagerduty.com/ai-automation/advance/add-paige-as-virtual-responder';
@@ -377,6 +377,13 @@ export function registerRespondCommands(d: RespondDeps): void {
     }
   });
 
+  command('pagerduty.copySummary', async (arg, selected) => {
+    const i = await d.target(arg, selected, ['triggered', 'acknowledged', 'resolved'], 'copy');
+    if (!i) return;
+    await vscode.env.clipboard.writeText(incidentSummary(store.get(i.id) ?? i, store.details.get(i.id)));
+    vscode.window.setStatusBarMessage(`$(copy) Copied #${i.number} summary`, 3000);
+  });
+
   // One keyboard entry point to every action on an incident.
   command('pagerduty.incidentActions', async (arg, selected) => {
     const i = await d.target(arg, selected, ['triggered', 'acknowledged', 'resolved'], 'act on');
@@ -405,6 +412,7 @@ export function registerRespondCommands(d: RespondDeps): void {
       ...(w ? [{ label: '$(sparkle) Ask Paige to investigate', cmd: 'pagerduty.askPaige' }] : []),
       { label: '$(copilot) Ask editor agent', cmd: 'pagerduty.askAgent' },
       { label: '$(go-to-file) Open incident pane', cmd: 'pagerduty.openIncident' },
+      { label: '$(copy) Copy summary', cmd: 'pagerduty.copySummary' },
       { label: '$(link-external) Open in PagerDuty', cmd: 'pagerduty.openInBrowser' },
     ];
     const pick = await vscode.window.showQuickPick(items, { title: label(i), placeHolder: `${STATUS_LABEL[i.status]} · ${i.service.name}` });

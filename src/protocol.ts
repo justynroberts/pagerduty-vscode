@@ -50,6 +50,8 @@ export const PANE_ACTIONS = [
   'openInBrowser',
   'addFollowUp',
   'postmortemDraft',
+  'copySummary',
+  'incidentActions',
 ] as const;
 export type PaneAction = (typeof PANE_ACTIONS)[number];
 

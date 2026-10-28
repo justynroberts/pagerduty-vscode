@@ -1,7 +1,7 @@
 import { Fragment, KeyboardEvent, ReactNode, useEffect, useRef, useState } from 'react';
 import { PAIGE_AUTHOR, FOLLOW_UP_PREFIX, followUpText, formatAge, Incident, IncidentDetail, Insights, isFollowUp, RelatedIncident, STATUS_LABEL } from '../src/model';
 import type { HostMessage, PaneAction, PaneMessage, PaneState } from '../src/protocol';
-import { Check, CheckAll, Close, External, Info, KindMarker, Refresh, Sparkle, StatusShape } from './icons';
+import { Check, CheckAll, Close, Copy, External, Info, KindMarker, Refresh, Sparkle, StatusShape } from './icons';
 
 declare function acquireVsCodeApi(): { postMessage(m: PaneMessage): void };
 const vscode = acquireVsCodeApi();
@@ -110,6 +110,9 @@ function Header({ state, incident }: { state: PaneState; incident: Incident }) {
         {state.isMine && <span className="mine">Assigned to you</span>}
         <span className="spacer" />
         {(state.loading || state.insightsLoading) && <span className="muted mono">refreshing</span>}
+        <button className="icon-btn" aria-label="Copy summary" title="Copy summary for Slack or a ticket" onClick={() => act('copySummary')}>
+          <Copy />
+        </button>
         <button className="icon-btn" aria-label="Open in PagerDuty" title="Open in PagerDuty" onClick={() => act('openInBrowser')}>
           <External />
         </button>
@@ -132,18 +135,17 @@ function Header({ state, incident }: { state: PaneState; incident: Incident }) {
             <button disabled={busy} onClick={() => act('reassign')}>Reassign</button>
             <button disabled={busy} onClick={() => act('escalate')}>Escalate</button>
             <button disabled={busy} onClick={() => act('addResponders')}>Add responders</button>
-            <button disabled={busy || incident.status !== 'acknowledged'} onClick={() => act('snooze')} title="Only acknowledged incidents can be snoozed">
-              Snooze
-            </button>
+            {incident.status === 'acknowledged' && (
+              <button disabled={busy} onClick={() => act('snooze')}>
+                Snooze
+              </button>
+            )}
             <button disabled={busy} onClick={() => act('statusUpdate')}>Status update</button>
-            <span className="sep" aria-hidden="true" />
-            <button disabled={busy} onClick={() => act('changeUrgency')}>{incident.urgency === 'high' ? 'Make low urgency' : 'Make high urgency'}</button>
-            <button disabled={busy} onClick={() => act('changePriority')}>Priority</button>
-            <button disabled={busy} onClick={() => act('merge')}>Merge…</button>
-            <button disabled={busy} onClick={() => act('runWorkflow')}>Run workflow…</button>
           </>
         )}
-        <button onClick={() => act('postmortemDraft')}>Postmortem draft</button>
+        <button onClick={() => act('incidentActions')} title="Urgency, priority, merge, workflows and everything else (PagerDuty: Incident Actions…)">
+          More…
+        </button>
         {!state.canWrite && <span className="muted">{state.readOnlyReason}</span>}
       </div>
       {state.error && (
@@ -422,9 +424,14 @@ function FollowUps({ detail, canWrite, pending }: { detail?: IncidentDetail; can
   const items = detail?.notes.filter(isFollowUp) ?? [];
   return (
     <section aria-labelledby="h-followups">
-      <h2 id="h-followups">
-        Follow-ups <span className="count">{detail ? items.length : ''}</span>
-      </h2>
+      <div className="section-head">
+        <h2 id="h-followups">
+          Follow-ups <span className="count">{detail ? items.length : ''}</span>
+        </h2>
+        <button className="link" onClick={() => act('postmortemDraft')}>
+          Postmortem draft
+        </button>
+      </div>
       {canWrite && <NoteComposer pending={pending} prefix={FOLLOW_UP_PREFIX} id="followup" placeholder="Something to fix after this incident" button="Add follow-up" rows={2} />}
       {items.length > 0 && (
         <ul className="files">

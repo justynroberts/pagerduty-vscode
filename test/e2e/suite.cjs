@@ -56,7 +56,7 @@ exports.run = async function () {
   const report = await waitFor('the pane to render under the webview CSP', () => api.panels.renderReports.get('Q1'), 15000);
   assert.equal(report.aboutButton, true, 'Made by FintonLabs info button rendered');
   assert.equal(report.reducedMotionRule, true, 'reduced-motion rule loaded');
-  assert.ok(report.actionCount >= 10, `toolbar has the response actions (${report.actionCount})`);
+  assert.ok(report.actionCount >= 7, `toolbar has the response actions (${report.actionCount})`);
   step(`incident pane renders in VS Code (${report.actionCount} actions, info button, reduced motion)`);
 
   const ins = await waitFor('insights', () => api.store.insights.get('Q1'), 15000);
@@ -65,6 +65,17 @@ exports.run = async function () {
   assert.match(ins.past.unavailable, /plan/i);
   assert.ok(ins.likelyFiles.items.some((f) => f.label.endsWith('src/model.ts') && f.line === 10), 'stack-trace path resolved to a workspace file');
   step('insights: Paige workflow found, change events, plan-gated AIOps, likely file from stack trace');
+
+  await vscode.commands.executeCommand('pagerduty.copySummary', 'Q1');
+  const summary = await vscode.env.clipboard.readText();
+  assert.match(summary, /^#4821 Checkout latency/);
+  assert.match(summary, /Latest note \(Ada Lovelace\): Follow-up: add pool alerting|Latest note/);
+  step('copy summary puts a paste-ready summary on the clipboard');
+
+  const walk = ext.packageJSON.contributes.walkthroughs?.[0];
+  assert.equal(walk?.steps.length, 5);
+  assert.ok(ext.packageJSON.contributes.jsonValidation?.[0].fileMatch === '.pagerduty.json');
+  step('walkthrough and .pagerduty.json schema contributed');
 
   await vscode.commands.executeCommand('pagerduty.postmortemDraft', 'Q1');
   const doc = vscode.window.activeTextEditor?.document;
@@ -112,6 +123,7 @@ exports.run = async function () {
 
   // A forged redirect with the wrong state must be ignored.
   api.auth.handleUri(vscode.Uri.parse(`${vscode.env.uriScheme}://fintonlabs.pagerduty-incidents/auth?code=evil&state=wrong`));
+  await api.store.sync(); // let the sign-in sync finish so the next one starts after expiry
   await fetch(`${MOCK_URL}/__expire`);
   await api.store.sync();
   assert.equal(api.store.error, undefined, `sync after expiry: ${api.store.error}`);

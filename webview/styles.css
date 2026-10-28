@@ -15,8 +15,6 @@
   --muted: var(--vscode-descriptionForeground);
   --line: var(--vscode-widget-border, var(--vscode-panel-border, rgba(128, 128, 128, 0.35)));
   --band: var(--vscode-sideBar-background, var(--bg));
-  --btn-fg: var(--fg);
-  --btn-bg: transparent;
   --err: var(--vscode-errorForeground);
   --warn: var(--vscode-editorWarning-foreground);
   --ok: var(--vscode-testing-iconPassed);
@@ -191,8 +189,9 @@ h1 {
 
 button {
   font: inherit;
-  color: var(--btn-fg);
-  background: var(--btn-bg);
+  /* Read --fg here, not via a :root alias, so the pagerduty.theme override reaches buttons. */
+  color: var(--fg);
+  background: transparent;
   border: 1px solid var(--line);
   border-radius: 3px;
   padding: 4px 12px;

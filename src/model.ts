@@ -471,3 +471,15 @@ export function isSafeRelayUrl(raw: string): boolean {
 
 // Commit ids reach git as arguments; only a real object id is accepted, never "--output=…".
 export const isCommitHash = (h: string) => /^[0-9a-f]{7,64}$/i.test(h);
+
+// Plain-text summary for pasting into Slack, a ticket or a handover.
+export function incidentSummary(i: Incident, d: IncidentDetail | undefined, now = new Date()): string {
+  const latest = [...(d?.notes ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  return [
+    `#${i.number} ${i.title}`,
+    `${STATUS_LABEL[i.status]} · ${i.urgency} urgency${i.priority ? ` · ${i.priority}` : ''} · ${i.service.name} · opened ${formatAge(i.createdAt, now)} ago`,
+    `Assigned: ${i.assignees.map((a) => a.name).join(', ') || 'nobody'}`,
+    ...(latest ? [`Latest note (${latest.author}): ${latest.content.replace(/\s+/g, ' ').slice(0, 280)}`] : []),
+    ...(i.htmlUrl ? [i.htmlUrl] : []),
+  ].join('\n');
+}

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0
+
+- Link Repo to Service command, a one-time offer after sign-in, and autocomplete and validation for `.pagerduty.json`
+- Getting Started walkthrough
+- Copy Incident Summary (pane, tree and Incident Actions) for Slack, tickets and handovers
+- Tidier pane toolbar: the common actions as buttons, everything else under More…
+- Team and All views show the assignee
+- Fixed button text contrast when `pagerduty.theme` overrides the editor theme (WCAG AA checked with axe-core in all four theme combinations)
+- New icon and store metadata
+- Security hardening: commit-id validation before git, normalised file paths, https-only relay URLs; dev tooling upgraded, npm audit clean
+
 ## 0.1.0
 
 - Sign in with a user API token, an account-level API key (pick your user) or OAuth (PKCE), stored in SecretStorage

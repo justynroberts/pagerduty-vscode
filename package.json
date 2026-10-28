@@ -1,15 +1,23 @@
 {
   "name": "pagerduty-incidents",
   "displayName": "PagerDuty Incidents",
-  "description": "Work PagerDuty incidents end to end in VS Code: triage, respond, Paige, AIOps insights and the code behind the incident.",
-  "version": "0.1.0",
+  "description": "Unofficial. Work PagerDuty incidents end to end in VS Code: triage, respond, Paige, AIOps insights and the code behind the incident.",
+  "version": "0.2.0",
   "publisher": "fintonlabs",
   "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#005A2F",
+    "theme": "dark"
+  },
+  "preview": true,
   "engines": {
     "vscode": "^1.90.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "AI",
+    "Chat"
   ],
   "keywords": [
     "pagerduty",
@@ -66,7 +74,7 @@
     "viewsWelcome": [
       {
         "view": "pagerduty.mine",
-        "contents": "Sign in to see the incidents assigned to you.\n[Sign In](command:pagerduty.signIn)\nUse a PagerDuty user API token, or sign in through the browser where your account allows OAuth.",
+        "contents": "Sign in to see the incidents assigned to you.\n[Sign In](command:pagerduty.signIn)\nUse a PagerDuty user API token, or sign in through the browser where your account allows OAuth.\n[Getting Started](command:pagerduty.gettingStarted)",
         "when": "!pagerduty.signedIn"
       }
     ],
@@ -239,6 +247,23 @@
         "command": "pagerduty.disconnectRelay",
         "title": "Disconnect Push Relay",
         "category": "PagerDuty"
+      },
+      {
+        "command": "pagerduty.linkRepo",
+        "title": "Link Repo to Service",
+        "category": "PagerDuty",
+        "icon": "$(link)"
+      },
+      {
+        "command": "pagerduty.gettingStarted",
+        "title": "Getting Started",
+        "category": "PagerDuty"
+      },
+      {
+        "command": "pagerduty.copySummary",
+        "title": "Copy Incident Summary",
+        "category": "PagerDuty",
+        "icon": "$(copy)"
       }
     ],
     "menus": {
@@ -277,6 +302,16 @@
           "command": "pagerduty.about",
           "when": "view =~ /^pagerduty\\./",
           "group": "z@3"
+        },
+        {
+          "command": "pagerduty.linkRepo",
+          "when": "view =~ /^pagerduty\\./ && pagerduty.signedIn && !pagerduty.repoLinked && workspaceFolderCount > 0",
+          "group": "z@0"
+        },
+        {
+          "command": "pagerduty.gettingStarted",
+          "when": "view =~ /^pagerduty\\./",
+          "group": "z@4"
         }
       ],
       "view/item/context": [
@@ -384,6 +419,11 @@
           "command": "pagerduty.postmortemDraft",
           "when": "viewItem =~ /^incident\\./",
           "group": "6_learn@2"
+        },
+        {
+          "command": "pagerduty.copySummary",
+          "when": "viewItem =~ /^incident\\./",
+          "group": "1_open@3"
         }
       ],
       "commandPalette": [
@@ -493,6 +533,14 @@
         },
         {
           "command": "pagerduty.disconnectRelay",
+          "when": "pagerduty.signedIn"
+        },
+        {
+          "command": "pagerduty.linkRepo",
+          "when": "pagerduty.signedIn && workspaceFolderCount > 0"
+        },
+        {
+          "command": "pagerduty.copySummary",
           "when": "pagerduty.signedIn"
         }
       ]
@@ -606,6 +654,78 @@
           }
         ]
       }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": ".pagerduty.json",
+        "url": "./media/pagerduty.schema.json"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "pagerduty.start",
+        "title": "Get started with PagerDuty Incidents",
+        "description": "Sign in, triage, respond and link your repo, without leaving VS Code.",
+        "steps": [
+          {
+            "id": "signin",
+            "title": "Sign in to PagerDuty",
+            "description": "Use a user API token or an account-level key.\n[Sign In](command:pagerduty.signIn)",
+            "media": {
+              "markdown": "media/walkthrough/signin.md"
+            },
+            "completionEvents": [
+              "onContext:pagerduty.signedIn"
+            ]
+          },
+          {
+            "id": "triage",
+            "title": "See your incidents",
+            "description": "Your incidents, your teams' and everyone's, plus who's on call.\n[Show My Incidents](command:pagerduty.mine.focus)",
+            "media": {
+              "markdown": "media/walkthrough/triage.md"
+            },
+            "completionEvents": [
+              "onView:pagerduty.mine"
+            ]
+          },
+          {
+            "id": "respond",
+            "title": "Work an incident",
+            "description": "Open an incident beside your code and act on it.\n[Open an Incident](command:pagerduty.openIncident)",
+            "media": {
+              "markdown": "media/walkthrough/respond.md"
+            },
+            "completionEvents": [
+              "onCommand:pagerduty.openIncident",
+              "onCommand:pagerduty.incidentActions"
+            ]
+          },
+          {
+            "id": "link",
+            "title": "Link this repository",
+            "description": "Connect the repo to its service for on-call, commits and likely files.\n[Link Repo](command:pagerduty.linkRepo)",
+            "media": {
+              "markdown": "media/walkthrough/link.md"
+            },
+            "completionEvents": [
+              "onContext:pagerduty.repoLinked"
+            ]
+          },
+          {
+            "id": "ai",
+            "title": "Ask Paige, the agent or @pagerduty",
+            "description": "Get help investigating, then capture follow-ups.\n[Open Chat](command:workbench.action.chat.open)",
+            "media": {
+              "markdown": "media/walkthrough/ai.md"
+            },
+            "completionEvents": [
+              "onCommand:pagerduty.askAgent",
+              "onCommand:pagerduty.askPaige"
+            ]
+          }
+        ]
+      }
     ]
   },
   "scripts": {
@@ -620,6 +740,9 @@
     "check:account": "esbuild scripts/check-account.ts --bundle --platform=node --format=esm --target=node18 --outfile=dist/check-account.mjs --log-level=warning && node dist/check-account.mjs",
     "test:real": "npm run build && node test/e2e/run-real.mjs"
   },
+  "overrides": {
+    "@azure/msal-node": "^7.1.2"
+  },
   "devDependencies": {
     "@types/node": "^22.20.5",
     "@types/react": "^18.3.31",
@@ -627,6 +750,7 @@
     "@types/vscode": "^1.90.0",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^4.0.0",
+    "axe-core": "^4.14.0",
     "esbuild": "^0.28.2",
     "ovsx": "^1.3.0",
     "react": "^18.3.1",
@@ -634,8 +758,5 @@
     "typescript": "^5.9.3",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
-  },
-  "overrides": {
-    "@azure/msal-node": "^7.1.2"
   }
 }

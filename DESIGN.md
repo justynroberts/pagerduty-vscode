@@ -25,3 +25,7 @@ This project deliberately breaks two house defaults, at the user's request (2026
 **Layout:** Paige, the timeline and recent changes sit left and wide, and a hairline-separated rail on the right holds responders, likely files, notes, alerts and AIOps insights. The rail stacks under the timeline below 720px.
 
 **House identity:** an info button (header end of the pane, plus *PagerDuty: About* in the views' overflow menu) credits FintonLabs. Stylesheet and pane HTML carry the MIT header.
+
+**Icon:** a bell inside code brackets on PD Dark Green, with an Electric dot for a live alert. It deliberately isn't PagerDuty's "P" mark, because this is an unofficial extension.
+
+**Accessibility:** axe-core (WCAG 2.1 A/AA plus best practice) passes with no violations in four combinations: editor light and dark, and the `pagerduty.theme` override in both directions. Buttons read `--fg` directly, not through a `:root` alias, so the override reaches them.

@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": ".pagerduty.json",
+  "description": "Links this repository to a PagerDuty service for the PagerDuty Incidents extension.",
+  "type": "object",
+  "required": ["serviceId"],
+  "properties": {
+    "serviceId": {
+      "type": "string",
+      "pattern": "^P[A-Z0-9]{5,}$",
+      "description": "PagerDuty service ID: the last part of the service's URL, e.g. PXXXXXX. Drives the status bar on-call display."
+    },
+    "paths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional globs that scope commits and likely files to part of a monorepo, e.g. [\"services/payments/**\"]."
+    }
+  },
+  "additionalProperties": true
+}
