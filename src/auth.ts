@@ -2,11 +2,15 @@
 
 import { createHash, randomBytes } from 'crypto';
 import * as vscode from 'vscode';
-import { Credentials, Region, regionHosts } from './api';
+import { Credentials } from './api';
 
 const SECRET_KEY = 'pagerduty.credentials';
 const TOKEN_HELP_URL = 'https://support.pagerduty.com/main/docs/api-access-keys#generate-a-user-token-rest-api-key';
 const SIGN_IN_TIMEOUT_MS = 5 * 60_000;
+// PagerDuty OAuth (docs.pagerduty.com/developer/oauth-functionality): one identity host for all regions.
+// A VS Code extension can't keep a client secret, so it uses Classic User OAuth with PKCE and the
+// `write` scope; Scoped OAuth requires a confidential client. Access tokens last 30 days.
+const OAUTH_HOST = 'https://identity.pagerduty.com';
 
 // A client ID baked in here gives every install one-click OAuth. Until the PagerDuty app is
 // registered it stays empty and sign-in uses a user API token, unless pagerduty.oauthClientId is set.
@@ -41,10 +45,6 @@ export class AuthManager implements vscode.UriHandler {
     if (c) await this.ctx.secrets.store(SECRET_KEY, JSON.stringify(c));
     else await this.ctx.secrets.delete(SECRET_KEY);
     this.changed.fire();
-  }
-
-  private region(): Region {
-    return vscode.workspace.getConfiguration('pagerduty').get<Region>('region', 'us');
   }
 
   private clientId(): string {
@@ -97,7 +97,7 @@ export class AuthManager implements vscode.UriHandler {
   }
 
   private appBase(): string {
-    return this.appBaseOverride ?? regionHosts(this.region()).app;
+    return this.appBaseOverride ?? OAUTH_HOST;
   }
 
   async oauth(clientId: string): Promise<Credentials | undefined> {
