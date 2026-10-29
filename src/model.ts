@@ -355,76 +355,12 @@ export function extractPaths(text: string, max = 25): { path: string; line?: num
   return [...seen.values()];
 }
 
-// ---- Postmortem (R17) ----
+// ---- Follow-ups (R17) ----
 
 // Follow-ups are incident notes with this prefix, so they live in PagerDuty with the incident.
 export const FOLLOW_UP_PREFIX = 'Follow-up:';
 export const isFollowUp = (n: Note) => n.content.trimStart().toLowerCase().startsWith(FOLLOW_UP_PREFIX.toLowerCase());
 export const followUpText = (n: Note) => n.content.trimStart().slice(FOLLOW_UP_PREFIX.length).trim();
-
-function duration(fromIso: string, toIso: string): string {
-  const mins = Math.max(0, Math.round((new Date(toIso).getTime() - new Date(fromIso).getTime()) / 60000));
-  return mins < 60 ? `${mins}m` : `${Math.floor(mins / 60)}h ${mins % 60}m`;
-}
-
-// A Markdown postmortem draft assembled from everything the extension knows about the incident.
-export function buildPostmortem(i: Incident, d: IncidentDetail | undefined, ins: Insights | undefined, now = new Date()): string {
-  const log = [...(d?.log ?? [])].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const resolvedAt = log.find((l) => l.kind === 'resolve')?.createdAt;
-  const ackAt = log.find((l) => l.kind === 'acknowledge')?.createdAt;
-  const notes = [...(d?.notes ?? [])].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const followUps = notes.filter(isFollowUp);
-  const discussion = notes.filter((n) => !isFollowUp(n));
-  const t = (iso: string) => new Date(iso).toISOString().replace('T', ' ').slice(0, 19) + 'Z';
-  const lines: string[] = [
-    `# Postmortem: #${i.number} ${i.title}`,
-    '',
-    `> Draft generated ${t(now.toISOString())} from PagerDuty incident ${i.htmlUrl || i.id}. Edit before sharing.`,
-    '',
-    '## Summary',
-    '',
-    '_What happened, in two or three sentences._',
-    '',
-    '## Impact',
-    '',
-    `- **Service:** ${i.service.name}`,
-    `- **Urgency / priority:** ${i.urgency}${i.priority ? ` / ${i.priority}` : ''}`,
-    `- **Triggered:** ${t(i.createdAt)}`,
-    `- **Time to acknowledge:** ${ackAt ? duration(i.createdAt, ackAt) : 'not acknowledged'}`,
-    `- **Time to resolve:** ${resolvedAt ? duration(i.createdAt, resolvedAt) : `still ${i.status}`}`,
-    `- **Responders:** ${[...new Set([...i.assignees, ...i.acknowledgers].map((r) => r.name))].join(', ') || 'none recorded'}`,
-    '',
-    '## Timeline',
-    '',
-    ...(log.length ? log.map((l) => `- \`${t(l.createdAt)}\` ${l.summary}${l.agent ? ` (${l.agent})` : ''}`) : ['_No timeline loaded._']),
-    '',
-    '## Changes before the incident',
-    '',
-    ...(ins?.changes.items.length ? ins.changes.items.map((c) => `- \`${t(c.timestamp)}\` ${c.summary}${c.source ? ` (${c.source})` : ''}`) : []),
-    ...(ins?.commits.items.length ? ins.commits.items.map((c) => `- \`${t(c.date)}\` commit \`${c.hash.slice(0, 7)}\` ${c.message} (${c.author})`) : []),
-    ...(!ins?.changes.items.length && !ins?.commits.items.length ? ['_None found._'] : []),
-    '',
-    '## Root cause',
-    '',
-    '_Why it happened. Likely files flagged during the incident:_',
-    '',
-    ...(ins?.likelyFiles.items.length ? ins.likelyFiles.items.map((f) => `- \`${f.label}${f.line ? `:${f.line}` : ''}\` (${f.reason})`) : ['- _none_']),
-    '',
-    '## Discussion notes',
-    '',
-    ...(discussion.length ? discussion.map((n) => `- **${n.author}** \`${t(n.createdAt)}\`: ${n.content.replace(/\n+/g, ' ')}`) : ['_No notes._']),
-    '',
-    '## Similar incidents',
-    '',
-    ...(ins?.past.items.length ? ins.past.items.map((p) => `- #${p.number ?? '?'} ${p.title}`) : ['_None found._']),
-    '',
-    '## Follow-ups',
-    '',
-    ...(followUps.length ? followUps.map((n) => `- [ ] ${followUpText(n)} (${n.author})`) : ['- [ ] _Add follow-ups from the incident pane._']),
-    '',
-  ];
-  return lines.join('\n');
-}
 
 // ---- Chat / voice intents (R19) ----
 

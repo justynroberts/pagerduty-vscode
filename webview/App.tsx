@@ -428,9 +428,6 @@ function FollowUps({ detail, canWrite, pending }: { detail?: IncidentDetail; can
         <h2 id="h-followups">
           Follow-ups <span className="count">{detail ? items.length : ''}</span>
         </h2>
-        <button className="link" onClick={() => act('postmortemDraft')}>
-          Postmortem draft
-        </button>
       </div>
       {canWrite && <NoteComposer pending={pending} prefix={FOLLOW_UP_PREFIX} id="followup" placeholder="Something to fix after this incident" button="Add follow-up" rows={2} />}
       {items.length > 0 && (

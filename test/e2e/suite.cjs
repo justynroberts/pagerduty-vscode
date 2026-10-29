@@ -77,12 +77,6 @@ exports.run = async function () {
   assert.ok(ext.packageJSON.contributes.jsonValidation?.[0].fileMatch === '.pagerduty.json');
   step('walkthrough and .pagerduty.json schema contributed');
 
-  await vscode.commands.executeCommand('pagerduty.postmortemDraft', 'Q1');
-  const doc = vscode.window.activeTextEditor?.document;
-  assert.ok(doc?.getText().includes('# Postmortem: #4821'));
-  assert.ok(doc.getText().includes('- [ ] add pool alerting'));
-  step('postmortem draft includes follow-ups');
-
   await api.relay.configure(RELAY_URL, RELAY_TOKEN);
   await waitFor('relay to go live', () => api.relay.state === 'live');
   const before = (await requests()).filter((r) => r.path === '/incidents' && r.method === 'GET').length;

@@ -229,15 +229,21 @@ export async function activate(ctx: vscode.ExtensionContext): Promise<TestingApi
     try {
       creds = await auth.signIn();
     } catch (e) {
+      log.error(`Sign-in failed: ${(e as Error).message}`);
       void vscode.window.showErrorMessage(`PagerDuty sign-in failed: ${(e as Error).message}`);
       return;
     }
-    if (!creds) return;
+    if (!creds) {
+      log.info('Sign-in cancelled.');
+      return;
+    }
+    log.info(`Verifying ${creds.kind} credentials against ${resolveApiBase(cfg().get<Region>('region', 'us'), cfg().get<string>('apiBaseUrl', ''))}`);
     await auth.store(creds);
     let me: Me;
     try {
       me = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Signing in to PagerDuty' }, () => api.me());
     } catch (e) {
+      log.error(`Sign-in check failed: ${(e as Error).message}`);
       // An account-level key works, but PagerDuty needs to know which user is acting.
       const user = e instanceof PdError && e.code === 'account_level_key' ? await chooseActingUser() : undefined;
       if (!user) {
@@ -249,11 +255,13 @@ export async function activate(ctx: vscode.ExtensionContext): Promise<TestingApi
       try {
         me = await api.me();
       } catch (e2) {
+        log.error(`Sign-in check failed: ${(e2 as Error).message}`);
         await auth.store(undefined);
         void vscode.window.showErrorMessage(`PagerDuty sign-in failed: ${(e2 as Error).message}`);
         return;
       }
     }
+    log.info(`Signed in as ${me.name} (${me.role})`);
     store.start(me);
     void relay.restart();
     void vscode.window.showInformationMessage(`Signed in to PagerDuty as ${me.name}.`);

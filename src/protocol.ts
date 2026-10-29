@@ -49,7 +49,6 @@ export const PANE_ACTIONS = [
   'askAgent',
   'openInBrowser',
   'addFollowUp',
-  'postmortemDraft',
   'copySummary',
   'incidentActions',
 ] as const;

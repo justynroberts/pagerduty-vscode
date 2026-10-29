@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- New PagerDuty "P" icon for the extension, activity bar, incident pane and chat participant
+- Removed Postmortem Draft: post-incident reviews are handled by PagerDuty's own PIR feature
+- Sign-in steps and failures are now written to the PagerDuty log
+
 ## 0.2.0
 
 - Link Repo to Service command, a one-time offer after sign-in, and autocomplete and validation for `.pagerduty.json`

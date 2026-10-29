@@ -2,11 +2,16 @@
   "name": "pagerduty-incidents",
   "displayName": "PagerDuty Incidents",
   "description": "Unofficial. Work PagerDuty incidents end to end in VS Code: triage, respond, Paige, AIOps insights and the code behind the incident.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "fintonlabs",
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/justynroberts/pagerduty-vscode.git" },
-  "bugs": { "url": "https://github.com/justynroberts/pagerduty-vscode/issues" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/justynroberts/pagerduty-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/justynroberts/pagerduty-vscode/issues"
+  },
   "homepage": "https://github.com/justynroberts/pagerduty-vscode#readme",
   "icon": "media/icon.png",
   "galleryBanner": {
@@ -153,7 +158,7 @@
       },
       {
         "command": "pagerduty.incidentActions",
-        "title": "Incident Actions\u2026",
+        "title": "Incident Actions…",
         "category": "PagerDuty",
         "icon": "$(list-selection)"
       },
@@ -234,12 +239,6 @@
         "title": "Add Follow-up",
         "category": "PagerDuty",
         "icon": "$(checklist)"
-      },
-      {
-        "command": "pagerduty.postmortemDraft",
-        "title": "Postmortem Draft",
-        "category": "PagerDuty",
-        "icon": "$(book)"
       },
       {
         "command": "pagerduty.connectRelay",
@@ -419,11 +418,6 @@
           "group": "6_learn@1"
         },
         {
-          "command": "pagerduty.postmortemDraft",
-          "when": "viewItem =~ /^incident\\./",
-          "group": "6_learn@2"
-        },
-        {
           "command": "pagerduty.copySummary",
           "when": "viewItem =~ /^incident\\./",
           "group": "1_open@3"
@@ -525,10 +519,6 @@
         {
           "command": "pagerduty.addFollowUp",
           "when": "pagerduty.signedIn && pagerduty.canWrite"
-        },
-        {
-          "command": "pagerduty.postmortemDraft",
-          "when": "pagerduty.signedIn"
         },
         {
           "command": "pagerduty.connectRelay",

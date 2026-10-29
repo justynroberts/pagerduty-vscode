@@ -36,7 +36,4 @@ exports.run = async function () {
   const ins = await waitFor('insights', () => api.store.insights.get(target.id), 30000);
   const slot = (s) => (s.unavailable ? `unavailable (${s.unavailable})` : `${s.items.length}`);
   console.log(`  ✓ insights: changes ${slot(ins.changes)}, past ${slot(ins.past)}, related ${slot(ins.related)}, workflows ${slot(ins.paige)}, likely files ${slot(ins.likelyFiles)}, commits ${slot(ins.commits)}`);
-  await vscode.commands.executeCommand('pagerduty.postmortemDraft', target.id);
-  assert.ok(vscode.window.activeTextEditor.document.getText().startsWith(`# Postmortem: #${target.number}`));
-  console.log('  ✓ postmortem draft built from live data');
 };

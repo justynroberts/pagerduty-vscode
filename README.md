@@ -38,7 +38,7 @@ EU accounts: set `pagerduty.region` to `eu` before signing in.
 - Commits in the open workspace from the hours before the trigger time (`pagerduty.changeWindowHours`, default 24). Click a commit to open its diff.
 - **Likely files**: paths in stack traces and alert payloads that resolve to workspace files, plus files touched by those commits. One click opens the file at the line. These are suggestions, not verdicts.
 
-**Learn.** Add follow-ups from the pane. They're saved on the incident as notes starting `Follow-up:`. **Postmortem Draft** opens an editable Markdown postmortem built from the impact numbers, timeline, notes, changes, likely files, similar incidents and follow-ups.
+**Learn.** Add follow-ups from the pane. They're saved on the incident as notes starting `Follow-up:`.
 
 **Chat and voice.** Type `@pagerduty` in the editor's chat: `/mine`, `/summary 4821`, `/ack 4821`, `/resolve 4821`, `/note 4821 rolled back`, `/paige 4821`, or just ask a question. It answers from the incident data with the editor's language model. Actions come back as buttons that run the same commands, so they get the same confirms. With the [VS Code Speech](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-speech) extension you can say it instead, for example "@pagerduty acknowledge 4821".
 

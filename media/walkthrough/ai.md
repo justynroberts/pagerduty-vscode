@@ -4,4 +4,4 @@
 - **Ask editor agent** hands the incident to your agent chat. PagerDuty's MCP server is registered with your sign-in.
 - **Ask Paige** runs PagerDuty's Paige (needs PagerDuty AI and the *Paige virtual responder* workflow).
 
-Afterwards, add **follow-ups** and open a **Postmortem draft**.
+Afterwards, add **follow-ups**. They're saved on the incident as notes.

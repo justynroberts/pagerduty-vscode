@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import { PagerDutyClient, PdError } from './api';
-import { FOLLOW_UP_PREFIX, incidentSummary, Incident, IncidentStatus, buildPostmortem, isPaigeWorkflow, selectIncidents, DEFAULT_FILTER, STATUS_LABEL } from './model';
+import { FOLLOW_UP_PREFIX, incidentSummary, Incident, IncidentStatus, isPaigeWorkflow, selectIncidents, DEFAULT_FILTER, STATUS_LABEL } from './model';
 import { Store } from './store';
 
 const PAIGE_SETUP_URL = 'https://docs.pagerduty.com/ai-automation/advance/add-paige-as-virtual-responder';
@@ -225,21 +225,6 @@ export function registerRespondCommands(d: RespondDeps): void {
     report(await store.mutate(i.id, 'follow_up', () => api.addNote(i.id, `${FOLLOW_UP_PREFIX} ${content}`)), 'add a follow-up to', i, `Follow-up added to #${i.number}`);
   });
 
-  // Opens an editable Markdown postmortem built from the timeline, notes, changes and follow-ups.
-  command('pagerduty.postmortemDraft', async (arg, selected) => {
-    const i = await d.target(arg, selected, ['triggered', 'acknowledged', 'resolved'], 'draft a postmortem for');
-    if (!i) return;
-    await vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Gathering incident data' }, async () => {
-      await store.loadDetail(i.id);
-      if (!store.insights.has(i.id)) await store.loadInsights(i.id);
-    });
-    const doc = await vscode.workspace.openTextDocument({
-      language: 'markdown',
-      content: buildPostmortem(store.get(i.id) ?? i, store.details.get(i.id), store.insights.get(i.id)),
-    });
-    await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.One });
-  });
-
   command('pagerduty.addResponders', async (arg, selected) => {
     if (!writable()) return;
     const me = store.me;
@@ -402,7 +387,6 @@ export function registerRespondCommands(d: RespondDeps): void {
       ...(w && isOpen ? [{ label: '$(megaphone) Post status update', cmd: 'pagerduty.statusUpdate' }] : []),
       { label: 'Learn', kind: vscode.QuickPickItemKind.Separator },
       ...(w ? [{ label: '$(checklist) Add follow-up', cmd: 'pagerduty.addFollowUp' }] : []),
-      { label: '$(book) Postmortem draft', cmd: 'pagerduty.postmortemDraft' },
       { label: 'Change', kind: vscode.QuickPickItemKind.Separator },
       ...(w && isOpen ? [{ label: `$(flame) Make ${i.urgency === 'high' ? 'low' : 'high'} urgency`, cmd: 'pagerduty.changeUrgency' }] : []),
       ...(w && isOpen ? [{ label: '$(list-ordered) Change priority', cmd: 'pagerduty.changePriority' }] : []),
